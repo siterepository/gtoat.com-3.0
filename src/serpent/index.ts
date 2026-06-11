@@ -25,9 +25,16 @@ export function createSerpent() {
 
   const headPos = new Vector3()
   const headDir = new Vector3()
-  const pointerWorld = new Vector3()
+  const chaseWorld = new Vector3() // delayed — the head's quarry
+  const gazeWorld = new Vector3() // instant — the eyes' lock
   const rayDir = new Vector3()
   const smooth = { px: 0, py: 0 }
+
+  const unprojectToStage = (nx: number, ny: number, out: Vector3) => {
+    rayDir.set(nx, ny, 0.5).unproject(camera).sub(camera.position).normalize()
+    const t = -camera.position.z / rayDir.z
+    out.copy(camera.position).addScaledVector(rayDir, t)
+  }
 
   let view = viewExtents()
   window.addEventListener('resize', () => {
@@ -49,23 +56,23 @@ export function createSerpent() {
   }
 
   onFrame((time, dt) => {
-    const k = Math.min(1, dt * 7)
+    // the head hunts a DELAYED pointer — weight and intent in the pursuit
+    const k = Math.min(1, dt * 2.6)
     smooth.px += (pointer.x - smooth.px) * k
     smooth.py += (pointer.y - smooth.py) * k
+    unprojectToStage(smooth.px, smooth.py, chaseWorld)
 
-    // unproject the pointer onto the z=0 plane — true 3D cursor position
-    rayDir.set(smooth.px, smooth.py, 0.5).unproject(camera).sub(camera.position).normalize()
-    const t = -camera.position.z / rayDir.z
-    pointerWorld.copy(camera.position).addScaledVector(rayDir, t)
+    // the eyes lock the RAW pointer — zero lag, predator attention
+    unprojectToStage(pointer.x, pointer.y, gazeWorld)
 
     const pointerActive =
       !quality.reducedMotion && performance.now() - lastPointerMove < POINTER_IDLE_MS
 
-    locomotion.update(time, dt, pointerWorld, pointerActive, mood.current.anchor, view)
+    locomotion.update(time, dt, chaseWorld, pointerActive, mood.current.anchor, view)
     body.update(locomotion.curve, time, mood.current.serpentHue, mood.current.tint, mood.current.tintAmt)
     locomotion.headPosition(headPos)
     locomotion.headDirection(headDir)
-    head.update(headPos, headDir, pointerWorld, time)
+    head.update(headPos, headDir, gazeWorld, time)
     orbs.update(time, headPos, mood.current.orb)
 
     // camera rig — pointer parallax, breathing drift, mood depth

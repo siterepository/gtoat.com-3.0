@@ -88,6 +88,7 @@ const frag = /* glsl */ `
     col += vec3(1.0) * spec * 0.5;
     col += vec3(0.0, 0.94, 1.0) * rim * 0.55;
     col += base * 0.05;
+    col += base * smoothstep(0.82, 1.0, vUv.x) * 0.35; // life gathers at the neck
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -165,9 +166,10 @@ export class SerpentBody {
 
   /** Radius profile: slim tail → full body → tapered neck into head. */
   private radius(t: number): number {
-    const grow = 0.16 + 0.84 * Math.pow(Math.min(t / 0.7, 1), 0.55)
-    const neck = 1.0 - 0.25 * Math.max(0, (t - 0.92) / 0.08)
-    return 0.42 * grow * neck
+    const s = Math.min(t / 0.62, 1)
+    const grow = 0.14 + 0.86 * Math.pow(s * s * (3 - 2 * s), 0.6) // smoothstep'd — no kink
+    const neck = 1.0 - 0.22 * Math.max(0, (t - 0.9) / 0.1)
+    return 0.45 * grow * neck
   }
 
   update(curve: CatmullRomCurve3, time: number, hue: number, tint: Color, tintAmt: number) {
