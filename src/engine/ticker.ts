@@ -30,7 +30,9 @@ document.addEventListener('visibilitychange', () => {
 gsap.ticker.add((time, dt) => {
   lenis.raf(time * 1000)
   if (paused) return
-  for (const fn of frameFns) fn(time, dt / 1000)
+  // reduced motion: freeze time-driven animation, keep scroll-driven state
+  const t = quality.reducedMotion ? 0 : time
+  for (const fn of frameFns) fn(t, dt / 1000)
 })
 gsap.ticker.lagSmoothing(0)
 

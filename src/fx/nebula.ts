@@ -69,8 +69,8 @@ const frag = /* glsl */ `
     vec3 tint = mix(purple, cyan, smoothstep(0.15, 0.55, uScroll));
     tint = mix(tint, pink, smoothstep(0.65, 1.0, uScroll));
 
-    vec3 col = void_ + tint * neb * 0.34;
-    col += cyan * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.5; // starfield sparkle
+    vec3 col = void_ + tint * neb * 0.19;
+    col += cyan * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.28; // starfield sparkle
 
     // vignette
     float vig = smoothstep(1.25, 0.35, length(p));
