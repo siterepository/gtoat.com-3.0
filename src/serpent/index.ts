@@ -14,7 +14,6 @@ function viewExtents() {
   return { w: h * camera.aspect, h }
 }
 
-const POINTER_IDLE_MS = 2600
 
 export function createSerpent() {
   const locomotion = new Locomotion()
@@ -43,10 +42,14 @@ export function createSerpent() {
   })
   orbs.resize(view)
 
-  // pointer activity — chase the mouse while it's alive, wander when idle
-  let lastPointerMove = -1e9
+  // pointer engagement — the snake cares about the cursor as long as it's
+  // on the page (still or not); it wanders only when the cursor leaves
+  let pointerEngaged = false
   window.addEventListener('pointermove', () => {
-    lastPointerMove = performance.now()
+    pointerEngaged = true
+  })
+  document.documentElement.addEventListener('mouseleave', () => {
+    pointerEngaged = false
   })
 
   let eaten = 0
@@ -65,10 +68,10 @@ export function createSerpent() {
     // the eyes lock the RAW pointer — zero lag, predator attention
     unprojectToStage(pointer.x, pointer.y, gazeWorld)
 
-    const pointerActive =
-      !quality.reducedMotion && performance.now() - lastPointerMove < POINTER_IDLE_MS
-
-    locomotion.update(time, dt, chaseWorld, pointerActive, mood.current.anchor, view)
+    // reduced motion: serpent holds its seeded pose; everything else static
+    if (!quality.reducedMotion) {
+      locomotion.update(time, dt, chaseWorld, pointerEngaged, mood.current.anchor, view)
+    }
     body.update(locomotion.curve, time, mood.current.serpentHue, mood.current.tint, mood.current.tintAmt)
     locomotion.headPosition(headPos)
     locomotion.headDirection(headDir)
