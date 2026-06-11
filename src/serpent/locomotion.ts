@@ -5,7 +5,7 @@ const BODY_LENGTH = 13 // world units of serpent
 const TRAIL_CAP = 900
 const MIN_STEP = 0.045
 
-type State = 'chase' | 'rest' | 'play' | 'wander'
+type State = 'chase' | 'rest' | 'play' | 'wander' | 'curious'
 
 /**
  * Natural slither locomotion, heading-based:
@@ -34,6 +34,17 @@ export class Locomotion {
   private restTimer = 0
   private restDelay = 7
   private playTimer = 0
+
+  // curiosity — the serpent notices things on the page
+  private curiousPoint = new Vector3()
+  private curiousTimer = 0
+  private boredom = 0 // builds while wandering/resting; curiosity strikes when full
+  private boredomTrigger = 9
+  /** host asks for a target when the serpent gets curious; null = nothing interesting */
+  onSeekPoi?: () => Vector3 | null
+  /** fired once when the serpent reaches its specimen and starts examining */
+  onExamineStart?: (point: Vector3) => void
+  private examined = false
 
   private lastTarget = new Vector3()
   private stillTime = 99
@@ -70,8 +81,52 @@ export class Locomotion {
     const dy = pointerWorld.y - this.head.y
     const cursorDist = Math.hypot(dx, dy)
 
+    // ── boredom → curiosity ───────────────────────────────────────────
+    // idle time builds an itch; when it pops, the serpent goes to examine
+    // something real on the page
+    if (this.state === 'wander' || this.state === 'rest') {
+      this.boredom += clampedDt
+    }
+    if (
+      this.boredom > this.boredomTrigger &&
+      this.state !== 'curious' &&
+      this.stillTime > 0.5 // not while the cursor is being driven
+    ) {
+      const poi = this.onSeekPoi?.()
+      if (poi) {
+        this.state = 'curious'
+        this.curiousPoint.copy(poi)
+        this.curiousTimer = 0
+        this.examined = false
+      }
+      this.boredom = 0
+      this.boredomTrigger = 8 + Math.random() * 8
+    }
+
     // ── state transitions ─────────────────────────────────────────────
-    if (!pointerEngaged) {
+    if (this.state === 'curious') {
+      // interruptible by a living cursor; otherwise: approach → dwell → done
+      if (pointerEngaged && this.stillTime < 0.3) {
+        this.state = 'chase'
+      } else {
+        this.curiousTimer += clampedDt
+        const d = Math.hypot(
+          this.curiousPoint.x - this.head.x,
+          this.curiousPoint.y - this.head.y,
+        )
+        if (!this.examined && d < 1.6) {
+          this.examined = true
+          this.curiousTimer = 0
+          this.onExamineStart?.(this.curiousPoint)
+        }
+        const dwellOver = this.examined && this.curiousTimer > 3.2
+        const gaveUp = !this.examined && this.curiousTimer > 7
+        if (dwellOver || gaveUp) {
+          this.state = pointerEngaged ? 'rest' : 'wander'
+          this.restTimer = 0
+        }
+      }
+    } else if (!pointerEngaged) {
       this.state = 'wander'
     } else if (this.stillTime < 0.3) {
       this.state = 'chase' // cursor is alive — everything else yields
@@ -100,6 +155,22 @@ export class Locomotion {
     // ── target + desired speed per state ──────────────────────────────
     let desiredSpeed = 0
     switch (this.state) {
+      case 'curious': {
+        if (this.examined) {
+          // leaning over the specimen — slow sway around it, nose down
+          this.target.set(
+            this.curiousPoint.x + Math.sin(time * 0.9) * 0.5,
+            this.curiousPoint.y + 0.9 + Math.cos(time * 0.7) * 0.25,
+            this.curiousPoint.z,
+          )
+          desiredSpeed = 0.5
+        } else {
+          this.target.copy(this.curiousPoint)
+          const d = Math.hypot(this.target.x - this.head.x, this.target.y - this.head.y)
+          desiredSpeed = Math.min(3.8, d * 1.6) // eager but braking — arrive, don't strike
+        }
+        break
+      }
       case 'chase': {
         this.target.copy(pointerWorld)
         // arrive: brake with distance — no orbiting the cursor
