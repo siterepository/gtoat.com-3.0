@@ -15,6 +15,7 @@ import { initNav } from './ui/nav'
 import { initProgress } from './ui/progress'
 import { initReveals } from './sections/reveals'
 import { initChoreography } from './sections/choreography'
+import { initFlow } from './sections/flow'
 import { initInteractions } from './sections/interactions'
 import { initGame } from './data/game'
 import { initContact } from './data/contact'
@@ -34,6 +35,7 @@ initNav()
 initProgress()
 initReveals()
 initChoreography()
+initFlow()
 initInteractions()
 initGame()
 initContact()
