@@ -1,3 +1,813 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex"><title>GTOAT Activity Log</title></head>
-<body style="background:#04060d;color:#e8ecf4;font-family:monospace;display:grid;place-items:center;min-height:100vh"><p>[GTOAT] ACTIVITY LOG — REBUILDING. Sprint 4.</p></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>GTOAT Activity Log</title>
+  <meta name="theme-color" content="#04060d">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://nndyngflhsqcvryclkbc.supabase.co" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;600;700&family=Unbounded:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+  <style>
+    :root {
+      --bg: #04060d;
+      --bg2: #0d1224;
+      --panel: #0d1224;
+      --line: rgba(255, 255, 255, 0.07);
+      --text: #e8ecf4;
+      --muted: #8899b4;
+      --green: #6ae7a8;
+      --blue: #79b3ff;
+      --pink: #f472b6;
+      --gold: #f59e0b;
+      --purple: #a855f7;
+      --red: #f87171;
+      --cyan: #22d3ee;
+      --orange: #fb923c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Manrope", "Consolas", sans-serif;
+      background: radial-gradient(ellipse at 20% 0%, var(--bg2) 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Auth ── */
+    #authScreen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .login-card {
+      width: 100%; max-width: 420px; padding: 3px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, var(--blue), var(--purple), var(--pink));
+      animation: glow 4s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      0% { box-shadow: 0 0 20px rgba(121,179,255,0.3); }
+      100% { box-shadow: 0 0 30px rgba(244,114,182,0.3); }
+    }
+    .login-inner {
+      background: var(--panel); border-radius: 14px; padding: 36px 28px;
+    }
+    .login-inner h2 {
+      font-size: 1.3rem; margin-bottom: 6px; font-family: "Unbounded", sans-serif;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .login-inner p { color: var(--muted); font-size: 0.85rem; margin-bottom: 22px; }
+    .login-inner input[type="password"] {
+      width: 100%; padding: 12px 14px; border: 1px solid var(--line);
+      border-radius: 10px; background: rgba(10,17,30,0.8); color: var(--text);
+      font: inherit; font-size: 0.92rem; outline: none; transition: border-color 0.2s;
+    }
+    .login-inner input[type="password"]:focus { border-color: var(--blue); }
+    .remember-row {
+      display: flex; align-items: center; gap: 8px; margin: 14px 0 18px;
+      font-size: 0.82rem; color: var(--muted); cursor: pointer;
+    }
+    .remember-row input { accent-color: var(--green); width: 16px; height: 16px; cursor: pointer; }
+    .login-btn {
+      width: 100%; padding: 12px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff; font: inherit; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .login-btn:hover { opacity: 0.88; }
+    .auth-err { min-height: 1.2em; margin-top: 12px; color: var(--pink); font-size: 0.82rem; text-align: center; }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; padding: 24px 18px 60px; }
+    .dash-wrap { max-width: 1400px; margin: 0 auto; }
+
+    .dash-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+    }
+    .dash-header h1 {
+      font-size: 1.5rem; font-family: "Unbounded", sans-serif;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .dash-header > div { display: flex; flex-direction: column; gap: 4px; }
+    .dash-header a {
+      display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem;
+      color: var(--muted); text-decoration: none; transition: color 0.2s;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .dash-header a:hover { color: var(--blue); }
+    .visit-badge {
+      font-size: 0.82rem; color: var(--muted);
+      background: rgba(42,58,87,0.5); padding: 6px 14px;
+      border-radius: 20px; border: 1px solid var(--line);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* Time Tabs */
+    .time-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .time-tab {
+      padding: 6px 16px; border: 1px solid var(--line); background: transparent;
+      color: var(--muted); border-radius: 8px; font: inherit; font-size: 0.78rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .time-tab:hover { border-color: var(--blue); color: var(--text); }
+    .time-tab.active { background: rgba(121,179,255,0.15); border-color: var(--blue); color: var(--blue); }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .s-card {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px 14px; text-align: center; transition: border-color 0.25s;
+    }
+    .s-card:hover { border-color: var(--blue); }
+    .s-label { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; font-family: "JetBrains Mono", monospace; }
+    .s-value { display: block; font-size: 1.4rem; font-weight: 700; font-family: "JetBrains Mono", monospace; }
+    .s-sub { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 3px; font-family: "JetBrains Mono", monospace; }
+    .sc-green .s-value { color: var(--green); }
+    .sc-blue .s-value { color: var(--blue); }
+    .sc-gold .s-value { color: var(--gold); }
+    .sc-purple .s-value { color: var(--purple); }
+    .sc-pink .s-value { color: var(--pink); }
+    .sc-cyan .s-value { color: var(--cyan); }
+
+    /* Snapshot Cards */
+    .snapshot-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .snap-card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; padding: 16px; position: relative; overflow: hidden;
+    }
+    .snap-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .snap-card:nth-child(1)::before { background: var(--green); }
+    .snap-card:nth-child(2)::before { background: var(--blue); }
+    .snap-card:nth-child(3)::before { background: var(--gold); }
+    .snap-card:nth-child(4)::before { background: var(--purple); }
+    .snap-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; font-family: "JetBrains Mono", monospace; }
+    .snap-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.78rem; font-family: "JetBrains Mono", monospace; }
+    .snap-lbl { color: var(--muted); }
+    .snap-val { color: var(--text); font-weight: 600; }
+
+    /* Section Title */
+    .section-title { font-size: 1rem; margin-bottom: 14px; color: var(--text); font-family: "Unbounded", sans-serif; }
+
+    /* Geo Breakdown */
+    .geo-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .geo-panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; padding: 18px; max-height: 380px; overflow-y: auto;
+    }
+    .geo-panel h3 {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--muted); margin-bottom: 12px; font-family: "JetBrains Mono", monospace;
+    }
+    .geo-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px solid rgba(42,58,87,0.3);
+      font-size: 0.78rem; font-family: "JetBrains Mono", monospace;
+    }
+    .geo-row:last-child { border-bottom: none; }
+    .geo-name { color: var(--text); max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .geo-count {
+      background: rgba(106,231,168,0.12); color: var(--green);
+      padding: 2px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;
+    }
+
+    /* Charts */
+    .charts-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 16px; margin-bottom: 24px;
+    }
+    .chart-panel {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line); border-radius: 14px; padding: 20px;
+    }
+    .chart-panel.wide { grid-column: 1 / -1; }
+    .chart-panel h3 {
+      font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--muted); margin-bottom: 14px; font-family: "JetBrains Mono", monospace;
+    }
+
+    /* Insights */
+    .insights-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-bottom: 24px;
+    }
+    .insight-panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; padding: 20px;
+    }
+    .insight-panel h3 { font-size: 0.82rem; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: "JetBrains Mono", monospace; }
+    .links-list { list-style: none; max-height: 320px; overflow-y: auto; }
+    .links-list li {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(42,58,87,0.3); font-size: 0.78rem; font-family: "JetBrains Mono", monospace;
+    }
+    .links-list li:last-child { border-bottom: none; }
+    .link-name { color: var(--text); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .link-count { background: rgba(106,231,168,0.12); color: var(--green); padding: 2px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; }
+
+    /* Filterable Table */
+    .table-section {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid var(--line);
+      background: rgba(8,16,29,0.65); flex-wrap: wrap; gap: 10px;
+    }
+    .table-toolbar h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+    .table-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .table-search {
+      padding: 6px 12px; border: 1px solid var(--line); background: rgba(10,17,30,0.8);
+      color: var(--text); border-radius: 8px; font: inherit; font-size: 0.78rem;
+      outline: none; width: 220px;
+    }
+    .table-search:focus { border-color: var(--blue); }
+    .table-search::placeholder { color: #5a7090; }
+    .table-scroll { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+    th, td {
+      text-align: left; border-bottom: 1px solid var(--line);
+      padding: 9px 12px; font-size: 0.75rem; white-space: nowrap; font-family: "JetBrains Mono", monospace;
+    }
+    th {
+      color: var(--muted); font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.03em; font-size: 0.66rem;
+      background: rgba(8,16,29,0.6); position: sticky; top: 0;
+      cursor: pointer; user-select: none; z-index: 2;
+    }
+    th:hover { color: var(--blue); }
+    th .sort-arrow { margin-left: 4px; font-size: 0.6rem; }
+    td.links-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; }
+    .empty-row { padding: 24px 14px; color: var(--muted); text-align: center; }
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px; border-top: 1px solid var(--line);
+      font-size: 0.75rem; color: var(--muted); font-family: "JetBrains Mono", monospace;
+    }
+    .page-btns { display: flex; gap: 6px; }
+    .page-btn {
+      padding: 4px 10px; border: 1px solid var(--line); background: transparent;
+      color: var(--muted); border-radius: 6px; font: inherit; font-size: 0.72rem; cursor: pointer; font-family: "JetBrains Mono", monospace;
+    }
+    .page-btn:hover { border-color: var(--blue); color: var(--text); }
+    .page-btn.active { background: rgba(121,179,255,0.15); color: var(--blue); border-color: var(--blue); }
+
+    /* Loading */
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 0.85rem; font-family: "Manrope", sans-serif; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .summary-grid { grid-template-columns: repeat(3, 1fr); }
+      .geo-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .snapshot-grid { grid-template-columns: repeat(2, 1fr); }
+      .geo-grid { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .insights-row { grid-template-columns: 1fr; }
+      .dash-header { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 480px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .snapshot-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth -->
+  <div id="authScreen">
+    <div class="login-card"><div class="login-inner">
+      <h2>Activity Dashboard</h2>
+      <p>Enter credentials to access the analytics dashboard.</p>
+      <form id="authForm">
+        <input id="authInput" type="password" placeholder="Password" autocomplete="current-password" required>
+        <label class="remember-row"><input type="checkbox" id="rememberMe"> Remember me</label>
+        <button class="login-btn" type="submit">Unlock Dashboard</button>
+        <div id="authError" class="auth-err"></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard"><div class="dash-wrap">
+    <div class="dash-header">
+      <div>
+        <h1>GTOAT Activity Log</h1>
+        <a href="/" aria-label="Back to home">&larr; gtoat.com</a>
+      </div>
+      <span class="visit-badge" id="visitBadge" aria-live="polite">Loading&hellip;</span>
+    </div>
+
+    <div id="loadingState" class="loading" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="loading-text">Fetching activity data&hellip;</span>
+    </div>
+
+    <div id="dashContent" style="display:none;">
+
+      <!-- Time Tabs -->
+      <div class="time-tabs" id="timeTabs">
+        <button class="time-tab active" data-range="all">All Time</button>
+        <button class="time-tab" data-range="today">Today</button>
+        <button class="time-tab" data-range="week">This Week</button>
+        <button class="time-tab" data-range="month">This Month</button>
+        <button class="time-tab" data-range="year">This Year</button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-grid" id="summaryGrid" aria-live="polite"></div>
+
+      <!-- Time Snapshots -->
+      <h2 class="section-title">Time Snapshots</h2>
+      <div class="snapshot-grid" id="snapshotGrid" aria-live="polite"></div>
+
+      <!-- Geographic Breakdown -->
+      <h2 class="section-title">Geographic Breakdown</h2>
+      <div class="geo-grid" id="geoGrid" aria-live="polite"></div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-panel wide">
+          <h3>Visit Timeline (Last 30 Days)</h3>
+          <canvas id="chartTimeline"></canvas>
+        </div>
+        <div class="chart-panel">
+          <h3>Hourly Activity</h3>
+          <canvas id="chartHourly"></canvas>
+        </div>
+        <div class="chart-panel">
+          <h3>Device Breakdown</h3>
+          <canvas id="chartDevice"></canvas>
+        </div>
+        <div class="chart-panel">
+          <h3>Page Popularity</h3>
+          <canvas id="chartPages"></canvas>
+        </div>
+        <div class="chart-panel">
+          <h3>Avg Time per Page</h3>
+          <canvas id="chartTimePage"></canvas>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="insights-row">
+        <div class="insight-panel">
+          <h3>Top ISPs / Organizations</h3>
+          <ul class="links-list" id="topISPList"></ul>
+        </div>
+        <div class="insight-panel">
+          <h3>Top Links Clicked</h3>
+          <ul class="links-list" id="topLinksList"></ul>
+        </div>
+      </div>
+
+      <!-- Filterable Data Table -->
+      <div class="table-section">
+        <div class="table-toolbar">
+          <h3>Activity Data</h3>
+          <div class="table-controls">
+            <label for="tableSearch" class="visually-hidden" style="position:absolute;left:-9999px;">Search activity</label>
+            <input type="search" inputmode="search" autocomplete="off" spellcheck="false" name="q" class="table-search" id="tableSearch" placeholder="Search country, city, ISP, IP&hellip;">
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr id="tableHead">
+              <th data-col="date">Date <span class="sort-arrow"></span></th>
+              <th data-col="time">Time <span class="sort-arrow"></span></th>
+              <th data-col="country">Country <span class="sort-arrow"></span></th>
+              <th data-col="region">Region <span class="sort-arrow"></span></th>
+              <th data-col="state">State <span class="sort-arrow"></span></th>
+              <th data-col="city">City <span class="sort-arrow"></span></th>
+              <th data-col="isp">ISP <span class="sort-arrow"></span></th>
+              <th data-col="ip">IP <span class="sort-arrow"></span></th>
+              <th data-col="device">Device <span class="sort-arrow"></span></th>
+              <th data-col="page">Page <span class="sort-arrow"></span></th>
+              <th data-col="links">Links <span class="sort-arrow"></span></th>
+              <th data-col="timeSpent">Time <span class="sort-arrow"></span></th>
+            </tr></thead>
+            <tbody id="tableRows"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="tableInfo" aria-live="polite">Showing 0 of 0</span>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+
+    </div>
+  </div></div>
+
+  <script>
+  (function () {
+    'use strict';
+    var PASSWORD_HASH = '735de81149b92d1b9fcabbd1d9c2fa967b43d911a3b4544b5789ffcfcf5d24cf';
+    var SESSION_KEY = 'gtoat_logs_auth_ok_v2';
+    var REMEMBER_KEY = 'gtoat_logs_remember_v1';
+    var LOCAL_KEY = 'gtoat_activity_logs_v1';
+    var PENDING_KEY = 'gtoat_pending_activity_logs_v1';
+    var SUPABASE_URL = 'https://nndyngflhsqcvryclkbc.supabase.co';
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZHluZ2ZsaHNxY3ZyeWNsa2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzMyMTksImV4cCI6MjA5MDIwOTIxOX0.iP63FibyKsAFDKrz1r_-fer1sZ9R39ZOk0WkW2DNRWQ';
+    var CC = ['#6ae7a8','#79b3ff','#ff6b9d','#ffd76a','#c084fc','#67e8f9','#fb923c','#f87171'];
+    var PAGE_SIZE = 50;
+
+    var allData = [], filteredData = [];
+    var sortCol = 'date', sortAsc = false, currentPage = 0, searchTerm = '', activeRange = 'all';
+    var charts = {};
+
+    var authScreen = document.getElementById('authScreen');
+    var dashboard = document.getElementById('dashboard');
+    var authForm = document.getElementById('authForm');
+    var authInput = document.getElementById('authInput');
+    var authError = document.getElementById('authError');
+    var rememberMe = document.getElementById('rememberMe');
+    var loadingState = document.getElementById('loadingState');
+    var dashContent = document.getElementById('dashContent');
+    var visitBadge = document.getElementById('visitBadge');
+
+    // Auth
+    async function sha256(msg) {
+      var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+    }
+    function checkAuth() {
+      if (sessionStorage.getItem(SESSION_KEY)==='1') return true;
+      if (localStorage.getItem(REMEMBER_KEY)==='1') { sessionStorage.setItem(SESSION_KEY,'1'); return true; }
+      return false;
+    }
+    authForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var hash = await sha256(authInput.value);
+      if (hash===PASSWORD_HASH) {
+        sessionStorage.setItem(SESSION_KEY,'1');
+        if (rememberMe.checked) localStorage.setItem(REMEMBER_KEY,'1');
+        authError.textContent=''; unlock();
+      } else { authError.textContent='Incorrect password.'; authInput.value=''; authInput.focus(); }
+    });
+    function unlock() { authScreen.style.display='none'; dashboard.style.display='block'; initDashboard(); }
+    if (checkAuth()) unlock();
+
+    // Helpers
+    function readArr(key){try{var r=localStorage.getItem(key);if(!r)return[];var p=JSON.parse(r);return Array.isArray(p)?p:[];}catch(e){return[];}}
+    function mapRow(row) {
+      if (!row||typeof row!=='object') return null;
+      return {
+        id:row.id,ts:row.ts,date:row.date,time:row.time,
+        city:row.city||'Unknown',state:row.state||'Unknown',
+        page:row.page||'/',
+        deviceType:row.device_type||row.deviceType||'Unknown',
+        linksClicked:row.links_clicked||row.linksClicked||'None',
+        timeSpentPerPage:row.time_spent_per_page||row.timeSpentPerPage||'',
+        ipAddress:row.ip_address||row.ipAddress||'Unknown',
+        country:row.country||'Unknown',
+        countryCode:row.country_code||row.countryCode||'',
+        region:row.region||'Unknown',
+        regionCode:row.region_code||row.regionCode||'',
+        isp:row.isp||'Unknown'
+      };
+    }
+    function mergeLogs(supa,local,pending) {
+      var all=[].concat(supa||[],local||[],pending||[]);
+      var out=[],seen={};
+      for(var i=0;i<all.length;i++){
+        var r=all[i];if(!r)continue;
+        var m=mapRow(r);if(!m)continue;
+        var k=m.id||[m.ts,m.date,m.time,m.page,m.timeSpentPerPage].join('|');
+        if(!seen[k]){seen[k]=true;out.push(m);}
+      }
+      return out;
+    }
+    function parseDur(s){if(!s||typeof s!=='string')return 0;var p=s.trim().split(':').map(function(v){return parseInt(v,10)});if(p.some(function(n){return!isFinite(n)}))return 0;if(p.length===3)return p[0]*3600+p[1]*60+p[2];if(p.length===2)return p[0]*60+p[1];return p[0]||0;}
+    function fmtSec(t){t=Math.max(0,Math.floor(t||0));var h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;var p=function(v){return String(v).padStart(2,'0')};return h>0?h+':'+p(m)+':'+p(s):m+':'+p(s);}
+    function getDate(row){if(row&&Number.isFinite(row.ts)){var d=new Date(row.ts);if(!isNaN(d.getTime()))return d;}if(!row||typeof row.date!=='string')return null;var p=new Date(row.date+'T'+(row.time||'00:00:00'));return isNaN(p.getTime())?null:p;}
+    function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+    function filterByRange(data,range){
+      if(range==='all')return data;
+      var now=new Date(),start;
+      if(range==='today')start=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      else if(range==='week'){start=new Date(now);start.setDate(start.getDate()-start.getDay());}
+      else if(range==='month')start=new Date(now.getFullYear(),now.getMonth(),1);
+      else if(range==='year')start=new Date(now.getFullYear(),0,1);
+      else return data;
+      return data.filter(function(r){var d=getDate(r);return d&&d>=start;});
+    }
+
+    // Init
+    async function initDashboard() {
+      var supaData=[];
+      try {
+        var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+        var result=await sb.from('activity_logs').select('*').order('ts',{ascending:false}).limit(5000);
+        if(result.data&&Array.isArray(result.data))supaData=result.data;
+      } catch(e) { console.warn('Supabase fetch failed',e); }
+      allData=mergeLogs(supaData,readArr(LOCAL_KEY),readArr(PENDING_KEY));
+      allData.sort(function(a,b){return(b.ts||0)-(a.ts||0)});
+      loadingState.style.display='none';
+      dashContent.style.display='block';
+      applyFilters();
+    }
+
+    function applyFilters(){
+      var ranged=filterByRange(allData,activeRange);
+      if(searchTerm){
+        var q=searchTerm.toLowerCase();
+        filteredData=ranged.filter(function(r){
+          return(r.date||'').toLowerCase().indexOf(q)!==-1||
+            (r.country||'').toLowerCase().indexOf(q)!==-1||
+            (r.region||'').toLowerCase().indexOf(q)!==-1||
+            (r.state||'').toLowerCase().indexOf(q)!==-1||
+            (r.city||'').toLowerCase().indexOf(q)!==-1||
+            (r.isp||'').toLowerCase().indexOf(q)!==-1||
+            (r.ipAddress||'').toLowerCase().indexOf(q)!==-1||
+            (r.deviceType||'').toLowerCase().indexOf(q)!==-1||
+            (r.page||'').toLowerCase().indexOf(q)!==-1;
+        });
+      } else filteredData=ranged;
+      currentPage=0;
+      render();
+    }
+
+    function render(){
+      visitBadge.textContent=filteredData.length+' total visits';
+      renderSummary(filteredData);
+      renderSnapshots();
+      renderGeo(filteredData);
+      renderCharts(filteredData);
+      renderInsights(filteredData);
+      renderTable();
+    }
+
+    // Summary Cards
+    function renderSummary(rows){
+      var total=rows.length;
+      var ipSet=new Set();rows.forEach(function(r){if(r.ipAddress&&r.ipAddress!=='Unknown')ipSet.add(r.ipAddress)});
+      var countrySet=new Set();rows.forEach(function(r){if(r.country&&r.country!=='Unknown')countrySet.add(r.country)});
+      var citySet=new Set();rows.forEach(function(r){if(r.city&&r.city!=='Unknown')citySet.add(r.city)});
+      var pageCounts={};rows.forEach(function(r){var p=(r.page||'/').trim();pageCounts[p]=(pageCounts[p]||0)+1;});
+      var topPage='-',topPageN=0;Object.keys(pageCounts).forEach(function(k){if(pageCounts[k]>topPageN){topPage=k;topPageN=pageCounts[k];}});
+      var totalSec=0,countTime=0;
+      rows.forEach(function(r){var s=parseDur(r.timeSpentPerPage);if(s>0){totalSec+=s;countTime++;}});
+      var avgSec=countTime>0?Math.round(totalSec/countTime):0;
+
+      var cards=[
+        {label:'Total Visits',value:total.toLocaleString(),sub:'page views',cls:'sc-green'},
+        {label:'Unique IPs',value:ipSet.size.toLocaleString(),sub:'distinct visitors',cls:'sc-blue'},
+        {label:'Countries',value:countrySet.size.toLocaleString(),sub:'geographic reach',cls:'sc-gold'},
+        {label:'Cities',value:citySet.size.toLocaleString(),sub:'unique cities',cls:'sc-purple'},
+        {label:'Top Page',value:topPage.length>15?topPage.slice(0,15)+'...':topPage,sub:topPageN+' visits',cls:'sc-pink'},
+        {label:'Avg Time',value:fmtSec(avgSec),sub:countTime+' tracked',cls:'sc-cyan'}
+      ];
+      document.getElementById('summaryGrid').innerHTML=cards.map(function(c){
+        return '<div class="s-card '+c.cls+'"><span class="s-label">'+c.label+'</span><span class="s-value">'+esc(c.value)+'</span><span class="s-sub">'+esc(c.sub)+'</span></div>';
+      }).join('');
+    }
+
+    // Snapshots
+    function renderSnapshots(){
+      var now=new Date();
+      var ranges=[
+        {title:'Today',fn:function(r){var d=getDate(r);return d&&d.toDateString()===now.toDateString();}},
+        {title:'This Week',fn:function(r){var d=getDate(r);if(!d)return false;var s=new Date(now);s.setDate(s.getDate()-s.getDay());return d>=s;}},
+        {title:'This Month',fn:function(r){var d=getDate(r);return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();}},
+        {title:'All Time',fn:function(){return true;}}
+      ];
+      var html='';
+      ranges.forEach(function(rng){
+        var sub=allData.filter(rng.fn);
+        var ips=new Set();sub.forEach(function(r){if(r.ipAddress&&r.ipAddress!=='Unknown')ips.add(r.ipAddress)});
+        var totalSec=0;sub.forEach(function(r){totalSec+=parseDur(r.timeSpentPerPage)});
+        var countries=new Set();sub.forEach(function(r){if(r.country&&r.country!=='Unknown')countries.add(r.country)});
+        html+='<div class="snap-card"><div class="snap-title">'+rng.title+'</div>'
+          +'<div class="snap-row"><span class="snap-lbl">Visits</span><span class="snap-val">'+sub.length+'</span></div>'
+          +'<div class="snap-row"><span class="snap-lbl">Unique IPs</span><span class="snap-val">'+ips.size+'</span></div>'
+          +'<div class="snap-row"><span class="snap-lbl">Countries</span><span class="snap-val">'+countries.size+'</span></div>'
+          +'<div class="snap-row"><span class="snap-lbl">Total Time</span><span class="snap-val">'+fmtSec(totalSec)+'</span></div>'
+          +'</div>';
+      });
+      document.getElementById('snapshotGrid').innerHTML=html;
+    }
+
+    // Geographic Breakdown
+    function renderGeo(rows){
+      var countryCounts={},stateCounts={},cityCounts={},ispCounts={},regionCounts={},ipCounts={};
+      rows.forEach(function(r){
+        if(r.country&&r.country!=='Unknown')countryCounts[r.country]=(countryCounts[r.country]||0)+1;
+        if(r.region&&r.region!=='Unknown')regionCounts[r.region]=(regionCounts[r.region]||0)+1;
+        if(r.state&&r.state!=='Unknown')stateCounts[r.state]=(stateCounts[r.state]||0)+1;
+        if(r.city&&r.city!=='Unknown')cityCounts[r.city]=(cityCounts[r.city]||0)+1;
+        if(r.isp&&r.isp!=='Unknown')ispCounts[r.isp]=(ispCounts[r.isp]||0)+1;
+        if(r.ipAddress&&r.ipAddress!=='Unknown')ipCounts[r.ipAddress]=(ipCounts[r.ipAddress]||0)+1;
+      });
+
+      function makeList(obj,max){
+        return Object.entries(obj).sort(function(a,b){return b[1]-a[1]}).slice(0,max||20).map(function(e){
+          return '<div class="geo-row"><span class="geo-name" title="'+esc(e[0])+'">'+esc(e[0])+'</span><span class="geo-count">'+e[1]+'</span></div>';
+        }).join('')||'<div class="geo-row"><span class="geo-name" style="color:var(--muted)">No data</span></div>';
+      }
+
+      document.getElementById('geoGrid').innerHTML=
+        '<div class="geo-panel"><h3>Countries</h3>'+makeList(countryCounts,15)+'</div>'
+        +'<div class="geo-panel"><h3>Regions / States</h3>'+makeList(stateCounts,15)+'</div>'
+        +'<div class="geo-panel"><h3>Cities</h3>'+makeList(cityCounts,20)+'</div>'
+        +'<div class="geo-panel"><h3>ISPs / Orgs</h3>'+makeList(ispCounts,15)+'</div>'
+        +'<div class="geo-panel"><h3>Top IPs</h3>'+makeList(ipCounts,15)+'</div>'
+        +'<div class="geo-panel"><h3>Regions (Detailed)</h3>'+makeList(regionCounts,15)+'</div>';
+    }
+
+    // Charts
+    function destroyCharts(){Object.keys(charts).forEach(function(k){if(charts[k]){charts[k].destroy();delete charts[k];}});}
+    function renderCharts(rows){
+      destroyCharts();
+      Chart.defaults.color='#8899b4';
+      Chart.defaults.borderColor='rgba(255, 255, 255, 0.07)';
+      Chart.defaults.font.family='"JetBrains Mono","Consolas",monospace';
+      Chart.defaults.font.size=11;
+
+      // Timeline
+      var now=new Date();var days={};
+      for(var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);days[d.toISOString().slice(0,10)]=0;}
+      rows.forEach(function(r){var dt=getDate(r);if(dt){var k=dt.toISOString().slice(0,10);if(days.hasOwnProperty(k))days[k]++;}});
+      charts.timeline=new Chart(document.getElementById('chartTimeline'),{
+        type:'line',data:{
+          labels:Object.keys(days).map(function(k){return k.slice(5)}),
+          datasets:[{label:'Visits',data:Object.values(days),borderColor:CC[0],backgroundColor:'rgba(106,231,168,0.1)',fill:true,tension:0.35,pointRadius:3,borderWidth:2}]
+        },options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:45,maxTicksLimit:10}},y:{beginAtZero:true,ticks:{stepSize:1}}}}
+      });
+
+      // Hourly
+      var hours=new Array(24).fill(0);
+      rows.forEach(function(r){var dt=getDate(r);if(dt)hours[dt.getHours()]++;});
+      charts.hourly=new Chart(document.getElementById('chartHourly'),{
+        type:'bar',data:{labels:hours.map(function(_,i){return String(i).padStart(2,'0')+':00'}),datasets:[{label:'Visits',data:hours,backgroundColor:CC[1]+'80',borderColor:CC[1],borderWidth:1,borderRadius:3}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12}},y:{beginAtZero:true,ticks:{stepSize:1}}}}
+      });
+
+      // Device
+      var dc={};rows.forEach(function(r){var d=r.deviceType||'Unknown';dc[d]=(dc[d]||0)+1;});
+      var dl=Object.keys(dc).filter(function(k){return dc[k]>0});
+      charts.device=new Chart(document.getElementById('chartDevice'),{
+        type:'doughnut',data:{labels:dl,datasets:[{data:dl.map(function(k){return dc[k]}),backgroundColor:CC.slice(0,dl.length),borderColor:'#0d1224',borderWidth:3}]},
+        options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:16,usePointStyle:true}}}}
+      });
+
+      // Pages
+      var pc={};rows.forEach(function(r){var p=(r.page||'/').trim();pc[p]=(pc[p]||0)+1;});
+      var ps=Object.entries(pc).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
+      charts.pages=new Chart(document.getElementById('chartPages'),{
+        type:'bar',data:{labels:ps.map(function(e){return e[0].length>25?e[0].slice(0,25)+'...':e[0]}),datasets:[{label:'Visits',data:ps.map(function(e){return e[1]}),backgroundColor:CC[4]+'80',borderColor:CC[4],borderWidth:1,borderRadius:4}]},
+        options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}},y:{}}}
+      });
+
+      // Time per Page
+      var pt={},ptc={};
+      rows.forEach(function(r){var p=(r.page||'/').trim();var s=parseDur(r.timeSpentPerPage);pt[p]=(pt[p]||0)+s;ptc[p]=(ptc[p]||0)+1;});
+      var tpe=Object.keys(pt).map(function(k){return{page:k,avg:ptc[k]>0?Math.round(pt[k]/ptc[k]):0}}).filter(function(e){return e.avg>0}).sort(function(a,b){return b.avg-a.avg}).slice(0,10);
+      charts.timePage=new Chart(document.getElementById('chartTimePage'),{
+        type:'bar',data:{labels:tpe.map(function(e){return e.page.length>25?e.page.slice(0,25)+'...':e.page}),datasets:[{label:'Avg Seconds',data:tpe.map(function(e){return e.avg}),backgroundColor:CC[3]+'80',borderColor:CC[3],borderWidth:1,borderRadius:4}]},
+        options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'Seconds',color:'#8899b4'}},y:{}}}
+      });
+    }
+
+    // Insights
+    function renderInsights(rows){
+      // ISPs
+      var ispCounts={};
+      rows.forEach(function(r){if(r.isp&&r.isp!=='Unknown')ispCounts[r.isp]=(ispCounts[r.isp]||0)+1;});
+      var ispSorted=Object.entries(ispCounts).sort(function(a,b){return b[1]-a[1]}).slice(0,20);
+      var ispList=document.getElementById('topISPList');
+      if(!ispSorted.length){ispList.innerHTML='<li><span class="link-name" style="color:var(--muted)">No ISP data yet.</span></li>';}
+      else{ispList.innerHTML=ispSorted.map(function(e){return '<li><span class="link-name" title="'+esc(e[0])+'">'+esc(e[0])+'</span><span class="link-count">'+e[1]+'</span></li>';}).join('');}
+
+      // Links
+      var linkCounts={};
+      rows.forEach(function(r){
+        var raw=r.linksClicked;if(!raw||raw==='None'||raw==='-')return;
+        raw.split(/[,|]/).forEach(function(link){var t=link.trim();if(t&&t!=='None')linkCounts[t]=(linkCounts[t]||0)+1;});
+      });
+      var linkSorted=Object.entries(linkCounts).sort(function(a,b){return b[1]-a[1]}).slice(0,25);
+      var linkList=document.getElementById('topLinksList');
+      if(!linkSorted.length){linkList.innerHTML='<li><span class="link-name" style="color:var(--muted)">No link data yet.</span></li>';}
+      else{linkList.innerHTML=linkSorted.map(function(e){return '<li><span class="link-name" title="'+esc(e[0])+'">'+esc(e[0])+'</span><span class="link-count">'+e[1]+'</span></li>';}).join('');}
+    }
+
+    // Table
+    function sortData(data,col,asc){
+      return data.slice().sort(function(a,b){
+        var va,vb;
+        if(col==='date'){va=a.ts||0;vb=b.ts||0;}
+        else if(col==='time'){va=a.time||'';vb=b.time||'';}
+        else if(col==='country'){va=(a.country||'').toLowerCase();vb=(b.country||'').toLowerCase();}
+        else if(col==='region'){va=(a.region||'').toLowerCase();vb=(b.region||'').toLowerCase();}
+        else if(col==='state'){va=(a.state||'').toLowerCase();vb=(b.state||'').toLowerCase();}
+        else if(col==='city'){va=(a.city||'').toLowerCase();vb=(b.city||'').toLowerCase();}
+        else if(col==='isp'){va=(a.isp||'').toLowerCase();vb=(b.isp||'').toLowerCase();}
+        else if(col==='ip'){va=a.ipAddress||'';vb=b.ipAddress||'';}
+        else if(col==='device'){va=(a.deviceType||'').toLowerCase();vb=(b.deviceType||'').toLowerCase();}
+        else if(col==='page'){va=(a.page||'').toLowerCase();vb=(b.page||'').toLowerCase();}
+        else if(col==='links'){va=(a.linksClicked||'').toLowerCase();vb=(b.linksClicked||'').toLowerCase();}
+        else if(col==='timeSpent'){va=parseDur(a.timeSpentPerPage);vb=parseDur(b.timeSpentPerPage);}
+        else{va=a.ts||0;vb=b.ts||0;}
+        if(va<vb)return asc?-1:1;if(va>vb)return asc?1:-1;return 0;
+      });
+    }
+
+    function renderTable(){
+      var sorted=sortData(filteredData,sortCol,sortAsc);
+      var totalPages=Math.max(1,Math.ceil(sorted.length/PAGE_SIZE));
+      if(currentPage>=totalPages)currentPage=totalPages-1;
+      var start=currentPage*PAGE_SIZE;
+      var page=sorted.slice(start,start+PAGE_SIZE);
+
+      var tbody=document.getElementById('tableRows');
+      if(!sorted.length){tbody.innerHTML='<tr><td class="empty-row" colspan="12">No activity found.</td></tr>';}
+      else{
+        var html='';
+        for(var i=0;i<page.length;i++){
+          var r=page[i];
+          html+='<tr>'
+            +'<td>'+esc(r.date||'-')+'</td>'
+            +'<td>'+esc(r.time||'-')+'</td>'
+            +'<td>'+esc(r.country||'-')+'</td>'
+            +'<td>'+esc(r.region||'-')+'</td>'
+            +'<td>'+esc(r.state||'-')+'</td>'
+            +'<td>'+esc(r.city||'-')+'</td>'
+            +'<td>'+esc(r.isp||'-')+'</td>'
+            +'<td>'+esc(r.ipAddress||'-')+'</td>'
+            +'<td>'+esc(r.deviceType||'-')+'</td>'
+            +'<td>'+esc(r.page||'-')+'</td>'
+            +'<td class="links-cell">'+esc(r.linksClicked||'None')+'</td>'
+            +'<td>'+esc(r.timeSpentPerPage||'-')+'</td>'
+            +'</tr>';
+        }
+        tbody.innerHTML=html;
+      }
+
+      document.getElementById('tableInfo').textContent='Showing '+(sorted.length?start+1:0)+'-'+Math.min(start+PAGE_SIZE,sorted.length)+' of '+sorted.length;
+
+      var pb=document.getElementById('pageBtns');
+      if(totalPages<=1){pb.innerHTML='';return;}
+      var btns='<button class="page-btn'+(currentPage===0?' active':'')+'" onclick="alTable.goPage(0)">1</button>';
+      if(currentPage>3)btns+='<span style="color:var(--muted);padding:0 4px">...</span>';
+      for(var p=Math.max(1,currentPage-2);p<=Math.min(totalPages-2,currentPage+2);p++){
+        btns+='<button class="page-btn'+(currentPage===p?' active':'')+'" onclick="alTable.goPage('+p+')">'+(p+1)+'</button>';
+      }
+      if(currentPage<totalPages-4)btns+='<span style="color:var(--muted);padding:0 4px">...</span>';
+      if(totalPages>1)btns+='<button class="page-btn'+(currentPage===totalPages-1?' active':'')+'" onclick="alTable.goPage('+(totalPages-1)+')">'+(totalPages)+'</button>';
+      pb.innerHTML=btns;
+
+      document.querySelectorAll('#tableHead th').forEach(function(th){
+        var arrow=th.querySelector('.sort-arrow');
+        if(th.dataset.col===sortCol){arrow.textContent=sortAsc?'▲':'▼';}
+        else{arrow.textContent='';}
+      });
+    }
+
+    window.alTable={goPage:function(p){currentPage=p;renderTable();}};
+
+    // Events
+    document.getElementById('tableHead').addEventListener('click',function(e){
+      var th=e.target.closest('th');if(!th||!th.dataset.col)return;
+      if(sortCol===th.dataset.col)sortAsc=!sortAsc;else{sortCol=th.dataset.col;sortAsc=true;}
+      renderTable();
+    });
+    document.getElementById('tableSearch').addEventListener('input',function(e){
+      searchTerm=e.target.value.trim();applyFilters();
+    });
+    document.getElementById('timeTabs').addEventListener('click',function(e){
+      var tab=e.target.closest('.time-tab');if(!tab)return;
+      document.querySelectorAll('.time-tab').forEach(function(t){t.classList.remove('active')});
+      tab.classList.add('active');activeRange=tab.dataset.range;applyFilters();
+    });
+  })();
+  </script>
+  <script src="js/activity-logger.js" defer></script>
+</body>
+</html>

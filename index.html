@@ -429,16 +429,7 @@
     </section>
   </main>
 
-  <!-- ═══ GAME OVERLAY ═══ -->
-  <div class="sl-ov" id="gameOverlay" hidden>
-    <div class="sl-head mono">
-      <span id="slTime">00:00</span><span id="slScore">SCORE 0</span><span id="slRank">RANK —</span>
-      <button class="sl-x" id="gameClose" type="button" aria-label="Close game">✕</button>
-    </div>
-    <canvas class="sl-c" id="gameCanvas"></canvas>
-    <p class="sl-hint mono">Use arrow keys or mouse to move. Eat pellets. Don't hit walls or other snakes.</p>
-  </div>
-
   <script type="module" src="/src/main.ts"></script>
+  <script src="/js/activity-logger.js" defer></script>
 </body>
 </html>
