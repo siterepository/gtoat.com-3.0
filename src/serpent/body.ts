@@ -75,6 +75,11 @@ const frag = /* glsl */ `
     // fresnel rim
     float rim = pow(1.0 - max(facing, 0.0), 2.6);
 
+    // dorsal stripe: darker saturated ridge along the spine — gives the
+    // body a top and a bottom, like a real animal
+    float dorsal = smoothstep(0.55, 0.95, n.y);
+    base = mix(base, base * vec3(0.45, 0.4, 0.62), dorsal * 0.6);
+
     // belly: lighter keeled plates underneath, darker top shading
     float bellyMask = smoothstep(0.15, -0.55, n.y);
     float keel = 0.85 + 0.15 * smoothstep(0.4, 0.5, fract(vUv.x * 60.0));

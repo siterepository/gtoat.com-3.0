@@ -6,7 +6,11 @@ import { Locomotion } from './locomotion'
 import { SerpentBody } from './body'
 import { SerpentHead } from './head'
 import { Orbs } from '../fx/orbs'
+import { Burst } from '../fx/burst'
 import { mood } from '../fx/moods'
+import { pickPoi } from '../sections/poi'
+import { reactToExamine } from '../sections/examine'
+import type { Poi } from '../sections/poi'
 
 /** World-space half-extents of the viewport at z=0 for the current camera. */
 function viewExtents() {
@@ -77,9 +81,44 @@ export function createSerpent() {
     rest: 'focused',
     play: 'playful',
     wander: 'neutral',
+    curious: 'curious',
   } as const
 
   const prevGaze = new Vector3()
+  const burst = new Burst()
+
+  // ── curiosity wiring: the serpent picks real page elements to examine ──
+  let currentPoi: Poi | null = null
+  locomotion.onSeekPoi = () => {
+    const poi = pickPoi()
+    if (!poi) return null
+    currentPoi = poi
+    const out = new Vector3()
+    unprojectToStage((poi.cx / window.innerWidth) * 2 - 1, -((poi.cy / window.innerHeight) * 2 - 1), out)
+    return out
+  }
+  locomotion.onExamineStart = (point) => {
+    head.setScanPoint(point)
+    burst.fire(point, mood.current.tint)
+    if (currentPoi) reactToExamine(currentPoi)
+    // examining ends when the state machine moves on
+    setTimeout(() => head.setScanPoint(null), 3300)
+  }
+
+  // click ON the serpent → delighted burst (research find: feel-good feedback)
+  window.addEventListener('pointerdown', (e) => {
+    const p = new Vector3()
+    unprojectToStage(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -((e.clientY / window.innerHeight) * 2 - 1),
+      p,
+    )
+    locomotion.headPosition(headPos)
+    if (p.distanceTo(headPos) < 1.5) {
+      burst.fire(headPos, mood.current.orb)
+      head.reactEat() // happy squint
+    }
+  })
 
   onFrame((time, dt) => {
     // the head hunts a DELAYED pointer — weight and intent in the pursuit

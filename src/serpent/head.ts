@@ -45,7 +45,7 @@ const skullFrag = /* glsl */ `
   }
 `
 
-export type Expression = 'alert' | 'focused' | 'playful' | 'neutral'
+export type Expression = 'alert' | 'focused' | 'playful' | 'neutral' | 'curious'
 
 /**
  * Acting targets per expression: lid closure, pupil scale, brow angle
@@ -68,6 +68,7 @@ const EXPRESSIONS: Record<
   focused: { lid: 0.32, pupil: 0.82, aspect: 0.55, brow: -0.12, browLift: 0.0, blinkMin: 4.0, blinkMax: 7.0 },
   playful: { lid: 0.5, pupil: 1.1, aspect: 0.8, brow: 0.28, browLift: 0.05, blinkMin: 2.0, blinkMax: 4.5 },
   neutral: { lid: 0.14, pupil: 1.0, aspect: 0.65, brow: 0.06, browLift: 0.02, blinkMin: 2.5, blinkMax: 6.0 },
+  curious: { lid: 0.08, pupil: 1.15, aspect: 0.85, brow: 0.34, browLift: 0.07, blinkMin: 1.8, blinkMax: 3.5 }, // leaning in, brows up
 }
 
 /**
@@ -100,6 +101,12 @@ export class SerpentHead {
   private blinkPhase = -1
   private squintPulse = 0
   private lastGazeL = new Vector3(0, 0, 1)
+  private crown = new Group()
+
+  // examine mode: gaze scans across a specimen instead of the cursor
+  private scanPoint: Vector3 | null = null
+  private scanJitter = new Vector3()
+  private scanNextAt = 0
 
   constructor() {
     const skull = new Mesh(
@@ -126,6 +133,27 @@ export class SerpentHead {
     this.browR.position.set(0.28, 0.66, 0.42)
     this.group.add(this.browL, this.browR)
 
+    // the crown — GTOAT is royalty; it bobs, slips when hunting,
+    // sits proud while playing
+    const gold = new MeshBasicMaterial({ color: 0xf5b50b })
+    const band = new Mesh(new BoxGeometry(0.42, 0.07, 0.34), gold)
+    this.crown.add(band)
+    for (let i = -1; i <= 1; i++) {
+      const spike = new Mesh(new BoxGeometry(0.09, 0.16, 0.3), gold)
+      spike.position.set(i * 0.15, 0.1, 0)
+      spike.scale.y = i === 0 ? 1.3 : 1
+      this.crown.add(spike)
+    }
+    const jewel = new Mesh(
+      new SphereGeometry(0.045, 10, 8),
+      new MeshBasicMaterial({ color: 0xff3d8e }),
+    )
+    jewel.position.set(0, 0.05, 0.18)
+    this.crown.add(jewel)
+    this.crown.position.set(0, 0.74, 0.05)
+    this.crown.rotation.x = -0.12
+    this.group.add(this.crown)
+
     const tongueMat = new MeshBasicMaterial({ color: 0xff3d8e })
     const stem = new Mesh(new BoxGeometry(0.05, 0.03, 0.5), tongueMat)
     stem.position.z = 0.25
@@ -148,6 +176,12 @@ export class SerpentHead {
     this.squintPulse = 1
   }
 
+  /** Enter/exit examine mode — eyes scan across the specimen, not the cursor. */
+  setScanPoint(p: Vector3 | null) {
+    this.scanPoint = p ? this.scanPoint?.copy(p) ?? p.clone() : null
+    this.scanNextAt = 0
+  }
+
   update(
     headPos: Vector3,
     headDir: Vector3,
@@ -162,9 +196,19 @@ export class SerpentHead {
     this.group.lookAt(this.dir)
     this.group.updateMatrixWorld()
 
-    // ── gaze target into head-local space, per eye (natural convergence) ──
-    this.lookTarget.copy(pointerWorld)
-    this.lookTarget.z += 1.6 // bias toward the viewer
+    // ── gaze target: cursor — or the specimen being examined, scanned
+    //    corner to corner like reading ──
+    if (this.scanPoint) {
+      if (time > this.scanNextAt) {
+        this.scanNextAt = time + 0.35 + Math.random() * 0.45
+        this.scanJitter.set((Math.random() - 0.5) * 2.4, (Math.random() - 0.5) * 1.4, 0)
+      }
+      this.lookTarget.copy(this.scanPoint).add(this.scanJitter)
+      this.lookTarget.z += 0.8
+    } else {
+      this.lookTarget.copy(pointerWorld)
+      this.lookTarget.z += 1.6 // bias toward the viewer
+    }
     this.localTarget.copy(this.lookTarget)
     this.group.worldToLocal(this.localTarget)
     this.eyeDirL.copy(this.localTarget).sub(this.eyeL.mesh.position).normalize()
@@ -223,6 +267,13 @@ export class SerpentHead {
     const browY = 0.66 + this.browLift - closure * 0.07
     this.browL.position.y = browY
     this.browR.position.y = browY
+
+    // crown: bobs gently; slips forward when hunting, sits tall when smug
+    const crownTilt =
+      this.expression === 'alert' ? 0.18 : this.expression === 'playful' ? -0.22 : -0.12
+    this.crown.rotation.x += (crownTilt - this.crown.rotation.x) * Math.min(1, dt * 4)
+    this.crown.position.y = 0.74 + Math.sin(time * 1.7) * 0.025 + this.browLift * 0.6
+    this.crown.rotation.z = Math.sin(time * 0.9) * 0.04
 
     // ── tongue flick ──────────────────────────────────────────────────
     const phase = time % 3.4

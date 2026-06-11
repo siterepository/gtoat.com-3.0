@@ -207,6 +207,33 @@ a.card {
   transform: none;
 }
 
+/* ── serpent examination — the page notices being noticed ── */
+.is-examined {
+  animation: examPulse 2.6s var(--e-out);
+}
+@keyframes examPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 240, 255, 0);
+  }
+  12% {
+    box-shadow:
+      0 0 0 2px rgba(0, 240, 255, 0.65),
+      0 0 34px rgba(0, 240, 255, 0.35);
+  }
+  70% {
+    box-shadow:
+      0 0 0 1px rgba(178, 77, 255, 0.4),
+      0 0 22px rgba(178, 77, 255, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(178, 77, 255, 0);
+  }
+}
+.ripple-ch {
+  display: inline-block;
+  white-space: pre;
+}
+
 /* ── tabs ── */
 .tabs {
   display: flex;
