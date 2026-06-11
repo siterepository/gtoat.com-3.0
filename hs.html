@@ -1,3 +1,1023 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex"><title>GTOAT Highscores Dashboard</title></head>
-<body style="background:#04060d;color:#e8ecf4;font-family:monospace;display:grid;place-items:center;min-height:100vh"><p>[GTOAT] HS DASHBOARD — REBUILDING. Sprint 4.</p></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>GTOAT Highscores Dashboard</title>
+  <meta name="theme-color" content="#04060d">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://nndyngflhsqcvryclkbc.supabase.co" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;600;700&family=Unbounded:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" defer></script>
+  <style>
+    :root {
+      --bg: #04060d;
+      --bg2: #0d1224;
+      --panel: #0d1224;
+      --line: rgba(255, 255, 255, 0.07);
+      --text: #e8ecf4;
+      --muted: #8899b4;
+      --green: #6ae7a8;
+      --blue: #79b3ff;
+      --pink: #f472b6;
+      --gold: #f59e0b;
+      --purple: #a855f7;
+      --red: #f87171;
+      --cyan: #22d3ee;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Manrope", "Consolas", sans-serif;
+      background: radial-gradient(circle at top, var(--bg2) 0%, var(--bg) 58%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Auth Screen ── */
+    .auth-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 32px 28px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      position: relative;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--blue), var(--purple), var(--pink));
+      z-index: -1;
+      filter: blur(6px);
+      opacity: 0.5;
+    }
+    .auth-card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 6px;
+      font-family: "Unbounded", sans-serif;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .auth-card p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
+    .auth-field {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(10, 17, 30, 0.8);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-field:focus { border-color: var(--blue); }
+    .auth-remember {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 14px 0 18px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .auth-remember input {
+      accent-color: var(--green);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+    .auth-submit {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, #1e3050, #1a2c4a);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 11px;
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .auth-submit:hover { border-color: var(--blue); background: #243b5c; }
+    .auth-err {
+      min-height: 1.2em;
+      margin-top: 10px;
+      color: var(--pink);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    /* ── Dashboard ── */
+    .dashboard {
+      display: none;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* Header */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .dash-header h1 {
+      font-size: 1.5rem;
+      font-family: "Unbounded", sans-serif;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .dash-header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .session-badge {
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: rgba(42, 58, 87, 0.5);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: rgba(13, 18, 36, 0.6);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn:hover { border-color: var(--blue); }
+
+    /* Time Range Tabs */
+    .time-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .time-tab {
+      padding: 6px 16px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .time-tab:hover { border-color: var(--blue); color: var(--text); }
+    .time-tab.active {
+      background: rgba(121, 179, 255, 0.15);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: center;
+      transition: border-color 0.25s;
+    }
+    .summary-card:hover { border-color: var(--blue); }
+    .summary-card .label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .summary-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .summary-card .sub {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 3px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .sc-green .value { color: var(--green); }
+    .sc-blue .value { color: var(--blue); }
+    .sc-gold .value { color: var(--gold); }
+    .sc-purple .value { color: var(--purple); }
+    .sc-pink .value { color: var(--pink); }
+    .sc-cyan .value { color: var(--cyan); }
+
+    /* Time Snapshot Cards */
+    .snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .snap-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .snap-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .snap-card:nth-child(1)::before { background: var(--green); }
+    .snap-card:nth-child(2)::before { background: var(--blue); }
+    .snap-card:nth-child(3)::before { background: var(--gold); }
+    .snap-card:nth-child(4)::before { background: var(--purple); }
+    .snap-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .snap-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      font-size: 0.78rem;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .snap-label { color: var(--muted); }
+    .snap-val { color: var(--text); font-weight: 600; }
+
+    /* Top 5 */
+    .section-title {
+      font-size: 1rem;
+      margin-bottom: 14px;
+      color: var(--text);
+      font-family: "Unbounded", sans-serif;
+    }
+    .top5-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .top5-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .top5-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .top5-card:nth-child(1)::before { background: var(--gold); }
+    .top5-card:nth-child(2)::before { background: #c0c0c0; }
+    .top5-card:nth-child(3)::before { background: #cd7f32; }
+    .top5-card:nth-child(4)::before { background: var(--blue); }
+    .top5-card:nth-child(5)::before { background: var(--purple); }
+    .top5-rank {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .top5-score {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 8px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .top5-detail {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.6;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-panel {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .chart-panel.wide { grid-column: 1 / -1; }
+    .chart-panel h3 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    /* Filterable Table */
+    .table-section {
+      background: linear-gradient(180deg, #16223b, var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 16, 29, 0.65);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .table-toolbar h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .table-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .table-search {
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      background: rgba(10, 17, 30, 0.8);
+      color: var(--text);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 0.78rem;
+      outline: none;
+      width: 200px;
+    }
+    .table-search:focus { border-color: var(--blue); }
+    .table-search::placeholder { color: #5a7090; }
+    .table-scroll { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      font-family: "JetBrains Mono", monospace;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-size: 0.68rem;
+      background: rgba(8, 16, 29, 0.6);
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+      z-index: 2;
+    }
+    th:hover { color: var(--blue); }
+    th .sort-arrow { margin-left: 4px; font-size: 0.6rem; }
+    td.score-cell { color: var(--green); font-weight: 700; }
+    .empty-row { padding: 24px 14px; color: var(--muted); text-align: center; }
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-top: 1px solid var(--line);
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .page-btns { display: flex; gap: 6px; }
+    .page-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      font: inherit;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .page-btn:hover { border-color: var(--blue); color: var(--text); }
+    .page-btn.active { background: rgba(121,179,255,0.15); color: var(--blue); border-color: var(--blue); }
+    .page-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* Loading */
+    .loading-overlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--line);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 0.85rem; font-family: "Manrope", sans-serif; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .summary-grid { grid-template-columns: repeat(3, 1fr); }
+      .top5-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .snapshot-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      .top5-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-header h1 { font-size: 1.2rem; }
+    }
+    @media (max-width: 480px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .snapshot-grid { grid-template-columns: 1fr; }
+      .top5-grid { grid-template-columns: 1fr; }
+      .dashboard { padding: 16px 12px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Screen -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <h2>GTOAT Highscores</h2>
+      <p>Enter the password to access the analytics dashboard.</p>
+      <form id="authForm">
+        <input id="authInput" class="auth-field" type="password" placeholder="Password" autocomplete="current-password" required>
+        <label class="auth-remember">
+          <input type="checkbox" id="rememberMe"> Remember me
+        </label>
+        <button class="auth-submit" type="submit">Unlock Dashboard</button>
+        <div id="authError" class="auth-err"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-text">Loading highscores&hellip;</div>
+    </div>
+
+    <div id="dashContent" style="display:none;">
+
+      <!-- Header -->
+      <div class="dash-header">
+        <div>
+          <h1>GTOAT Highscores</h1>
+          <a href="/" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--muted); text-decoration: none; margin-top: 4px; transition: color 0.2s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--muted)'">&larr; gtoat.com</a>
+        </div>
+        <div class="dash-header-right">
+          <span class="session-badge" id="sessionCount" aria-live="polite">0 sessions</span>
+        </div>
+      </div>
+
+      <!-- Time Range Tabs -->
+      <div class="time-tabs" id="timeTabs">
+        <button class="time-tab active" data-range="all">All Time</button>
+        <button class="time-tab" data-range="today">Today</button>
+        <button class="time-tab" data-range="week">This Week</button>
+        <button class="time-tab" data-range="month">This Month</button>
+        <button class="time-tab" data-range="year">This Year</button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-grid" id="summaryGrid" aria-live="polite"></div>
+
+      <!-- Time Snapshot Cards -->
+      <h2 class="section-title">Time Snapshots</h2>
+      <div class="snapshot-grid" id="snapshotGrid" aria-live="polite"></div>
+
+      <!-- Top 5 -->
+      <h2 class="section-title">Top 5 All-Time Scores</h2>
+      <div class="top5-grid" id="top5Grid" aria-live="polite"></div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-panel wide">
+          <h3>Score Timeline</h3>
+          <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <h3>Score Distribution</h3>
+          <div class="chart-wrap"><canvas id="chartDistribution"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <h3>Daily Activity</h3>
+          <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <h3>Top Cities</h3>
+          <div class="chart-wrap"><canvas id="chartCities"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <h3>Device Breakdown</h3>
+          <div class="chart-wrap"><canvas id="chartDevices"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Filterable Data Table -->
+      <div class="table-section">
+        <div class="table-toolbar">
+          <h3>Session Data</h3>
+          <div class="table-controls">
+            <label for="tableSearch" style="position:absolute;left:-9999px;">Search sessions</label>
+            <input type="search" inputmode="search" autocomplete="off" spellcheck="false" name="q" class="table-search" id="tableSearch" placeholder="Search scores, cities, dates&hellip;">
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr id="tableHead">
+                <th data-col="date">Date <span class="sort-arrow"></span></th>
+                <th data-col="time">Time <span class="sort-arrow"></span></th>
+                <th data-col="score">Score <span class="sort-arrow"></span></th>
+                <th data-col="timePlayed">Time Played <span class="sort-arrow"></span></th>
+                <th data-col="city">City <span class="sort-arrow"></span></th>
+                <th data-col="state">State <span class="sort-arrow"></span></th>
+                <th data-col="device">Device <span class="sort-arrow"></span></th>
+                <th data-col="mode">Mode <span class="sort-arrow"></span></th>
+                <th data-col="ip">IP <span class="sort-arrow"></span></th>
+              </tr>
+            </thead>
+            <tbody id="tableRows"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="tableInfo" aria-live="polite">Showing 0 of 0</span>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var SUPABASE_URL = 'https://nndyngflhsqcvryclkbc.supabase.co';
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZHluZ2ZsaHNxY3ZyeWNsa2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzMyMTksImV4cCI6MjA5MDIwOTIxOX0.iP63FibyKsAFDKrz1r_-fer1sZ9R39ZOk0WkW2DNRWQ';
+    var PASSWORD_HASH = '735de81149b92d1b9fcabbd1d9c2fa967b43d911a3b4544b5789ffcfcf5d24cf';
+    var AUTH_SESSION_KEY = 'gtoat_hs_auth_session';
+    var AUTH_PERSIST_KEY = 'gtoat_hs_auth_persist';
+    var LOCAL_KEY = 'gtoat_player_logs_v1';
+    var PENDING_KEY = 'gtoat_pending_shared_highscores_v1';
+    var ACCENT = ['#6ae7a8', '#79b3ff', '#ff6b9d', '#ffd76a', '#c084fc', '#67e8f9'];
+    var PAGE_SIZE = 50;
+
+    var allData = [];
+    var filteredData = [];
+    var sortCol = 'date';
+    var sortAsc = false;
+    var currentPage = 0;
+    var searchTerm = '';
+    var activeRange = 'all';
+    var charts = {};
+
+    // DOM
+    var authOverlay = document.getElementById('authOverlay');
+    var dashboard = document.getElementById('dashboard');
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    var dashContent = document.getElementById('dashContent');
+    var authForm = document.getElementById('authForm');
+    var authInput = document.getElementById('authInput');
+    var authError = document.getElementById('authError');
+    var rememberMe = document.getElementById('rememberMe');
+
+    // Auth
+    async function hashPassword(pw) {
+      var enc = new TextEncoder().encode(pw);
+      var buf = await crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+    }
+    function isAuthed() {
+      return sessionStorage.getItem(AUTH_SESSION_KEY)==='1' || localStorage.getItem(AUTH_PERSIST_KEY)==='1';
+    }
+    function setAuthed(remember) {
+      sessionStorage.setItem(AUTH_SESSION_KEY,'1');
+      if(remember) localStorage.setItem(AUTH_PERSIST_KEY,'1');
+    }
+    authForm.addEventListener('submit', async function(e){
+      e.preventDefault();
+      authError.textContent='';
+      var hash = await hashPassword(authInput.value);
+      if(hash===PASSWORD_HASH){setAuthed(rememberMe.checked);showDashboard();}
+      else{authError.textContent='Wrong password.';authInput.value='';authInput.focus();}
+    });
+    function showDashboard(){
+      authOverlay.style.display='none';
+      dashboard.style.display='block';
+      loadData();
+    }
+
+    // Data
+    function readArr(key){try{var r=localStorage.getItem(key);if(!r)return[];var p=JSON.parse(r);return Array.isArray(p)?p:[];}catch(e){return[];}}
+    function norm(row){
+      if(!row||typeof row!=='object')return null;
+      return{
+        id:row.id||'',ts:row.ts||0,date:row.date||'',time:row.time||'',
+        scoreAtDeath:row.scoreAtDeath!=null?row.scoreAtDeath:(row.score_at_death!=null?row.score_at_death:null),
+        timePlayed:row.timePlayed||row.time_played||'',
+        city:row.city||'Unknown',state:row.state||'Unknown',
+        deviceType:row.deviceType||row.device_type||'Unknown',
+        ipAddress:row.ipAddress||row.ip_address||'',
+        mode:row.mode||'',
+        country:row.country||row.country||'',
+        region:row.region||'',
+        isp:row.isp||''
+      };
+    }
+    function dedup(rows){
+      var seen={},out=[];
+      for(var i=0;i<rows.length;i++){
+        var r=rows[i];if(!r)continue;
+        var k=r.id||[r.ts,r.date,r.time,r.scoreAtDeath,r.timePlayed].join('|');
+        if(!seen[k]){seen[k]=true;out.push(r);}
+      }
+      return out;
+    }
+
+    function parseDuration(s){
+      if(!s||typeof s!=='string')return 0;
+      var p=s.trim().split(':').map(function(v){return parseInt(v,10)});
+      if(p.some(function(n){return!isFinite(n)}))return 0;
+      if(p.length===3)return p[0]*3600+p[1]*60+p[2];
+      if(p.length===2)return p[0]*60+p[1];
+      return p[0]||0;
+    }
+    function fmtDur(t){
+      t=Math.max(0,Math.floor(t||0));
+      var h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;
+      var p2=function(v){return String(v).padStart(2,'0')};
+      return h>0?h+':'+p2(m)+':'+p2(s):m+':'+p2(s);
+    }
+
+    function getDateObj(row){
+      if(row&&Number.isFinite(row.ts)){var d=new Date(row.ts);if(!isNaN(d.getTime()))return d;}
+      if(!row||typeof row.date!=='string')return null;
+      var parsed=new Date(row.date+'T'+(row.time||'00:00:00'));
+      return isNaN(parsed.getTime())?null:parsed;
+    }
+
+    function filterByRange(data, range){
+      if(range==='all')return data;
+      var now=new Date();
+      var start;
+      if(range==='today'){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());}
+      else if(range==='week'){start=new Date(now);start.setDate(start.getDate()-start.getDay());}
+      else if(range==='month'){start=new Date(now.getFullYear(),now.getMonth(),1);}
+      else if(range==='year'){start=new Date(now.getFullYear(),0,1);}
+      else return data;
+      return data.filter(function(r){var d=getDateObj(r);return d&&d>=start;});
+    }
+
+    async function loadData(){
+      var supaRows=[];
+      try{
+        var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+        var resp=await sb.from('highscores').select('*').order('ts',{ascending:false}).limit(5000);
+        if(resp.data&&Array.isArray(resp.data))supaRows=resp.data.map(norm).filter(Boolean);
+      }catch(e){console.warn('Supabase fetch failed',e);}
+      var local=readArr(LOCAL_KEY).map(norm).filter(Boolean);
+      var pending=readArr(PENDING_KEY).map(norm).filter(Boolean);
+      allData=dedup(supaRows.concat(local).concat(pending));
+      allData.sort(function(a,b){return(b.ts||0)-(a.ts||0)});
+      applyFilters();
+      loadingOverlay.style.display='none';
+      dashContent.style.display='block';
+    }
+
+    function applyFilters(){
+      var ranged=filterByRange(allData,activeRange);
+      if(searchTerm){
+        var q=searchTerm.toLowerCase();
+        filteredData=ranged.filter(function(r){
+          return(r.date||'').toLowerCase().indexOf(q)!==-1||
+                (r.city||'').toLowerCase().indexOf(q)!==-1||
+                (r.state||'').toLowerCase().indexOf(q)!==-1||
+                (r.deviceType||'').toLowerCase().indexOf(q)!==-1||
+                (r.mode||'').toLowerCase().indexOf(q)!==-1||
+                (r.ipAddress||'').toLowerCase().indexOf(q)!==-1||
+                String(r.scoreAtDeath||'').indexOf(q)!==-1;
+        });
+      }else{filteredData=ranged;}
+      currentPage=0;
+      render();
+    }
+
+    function render(){
+      document.getElementById('sessionCount').textContent=filteredData.length+(filteredData.length===1?' session':' sessions');
+      renderSummary(filteredData);
+      renderSnapshots();
+      renderTop5(allData);
+      renderCharts(filteredData);
+      renderTable();
+    }
+
+    // Summary
+    function renderSummary(data){
+      var total=data.length;
+      var scores=data.map(function(r){return r.scoreAtDeath}).filter(function(s){return s!=null&&isFinite(s)});
+      var highest=scores.length?Math.max.apply(null,scores):0;
+      var lowest=scores.length?Math.min.apply(null,scores):0;
+      var avg=scores.length?Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length):0;
+      var median=0;
+      if(scores.length){
+        var sorted=scores.slice().sort(function(a,b){return a-b});
+        var mid=Math.floor(sorted.length/2);
+        median=sorted.length%2?sorted[mid]:Math.round((sorted[mid-1]+sorted[mid])/2);
+      }
+      var totalPlaySec=0;
+      data.forEach(function(r){totalPlaySec+=parseDuration(r.timePlayed)});
+
+      var cityCount={};
+      data.forEach(function(r){var c=r.city&&r.city!=='Unknown'?r.city:null;if(c)cityCount[c]=(cityCount[c]||0)+1;});
+      var topCity='--',topCityN=0;
+      Object.keys(cityCount).forEach(function(c){if(cityCount[c]>topCityN){topCity=c;topCityN=cityCount[c];}});
+
+      var cards=[
+        {label:'Total Sessions',value:total.toLocaleString(),sub:'filtered view',cls:'sc-blue'},
+        {label:'Highest Score',value:highest.toLocaleString(),sub:'peak performance',cls:'sc-green'},
+        {label:'Average Score',value:avg.toLocaleString(),sub:'mean score',cls:'sc-gold'},
+        {label:'Median Score',value:median.toLocaleString(),sub:'middle value',cls:'sc-purple'},
+        {label:'Total Play Time',value:fmtDur(totalPlaySec),sub:total+' sessions',cls:'sc-pink'},
+        {label:'Top City',value:topCity,sub:topCityN?topCityN+' sessions':'',cls:'sc-cyan'}
+      ];
+      document.getElementById('summaryGrid').innerHTML=cards.map(function(c){
+        return '<div class="summary-card '+c.cls+'"><div class="label">'+c.label+'</div><div class="value">'+esc(c.value)+'</div><div class="sub">'+esc(c.sub)+'</div></div>';
+      }).join('');
+    }
+
+    // Snapshots
+    function renderSnapshots(){
+      var now=new Date();
+      var ranges=[
+        {title:'Today',filter:function(r){var d=getDateObj(r);return d&&d.toDateString()===now.toDateString();}},
+        {title:'This Week',filter:function(r){var d=getDateObj(r);if(!d)return false;var s=new Date(now);s.setDate(s.getDate()-s.getDay());return d>=s;}},
+        {title:'This Month',filter:function(r){var d=getDateObj(r);return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();}},
+        {title:'All Time',filter:function(){return true;}}
+      ];
+      var html='';
+      ranges.forEach(function(rng){
+        var subset=allData.filter(rng.filter);
+        var scores=subset.map(function(r){return r.scoreAtDeath}).filter(function(s){return s!=null&&isFinite(s)});
+        var high=scores.length?Math.max.apply(null,scores):0;
+        var avg=scores.length?Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length):0;
+        var totalSec=0;subset.forEach(function(r){totalSec+=parseDuration(r.timePlayed)});
+        html+='<div class="snap-card"><div class="snap-title">'+rng.title+'</div>'
+          +'<div class="snap-row"><span class="snap-label">Sessions</span><span class="snap-val">'+subset.length+'</span></div>'
+          +'<div class="snap-row"><span class="snap-label">High Score</span><span class="snap-val">'+high.toLocaleString()+'</span></div>'
+          +'<div class="snap-row"><span class="snap-label">Avg Score</span><span class="snap-val">'+avg.toLocaleString()+'</span></div>'
+          +'<div class="snap-row"><span class="snap-label">Play Time</span><span class="snap-val">'+fmtDur(totalSec)+'</span></div>'
+          +'</div>';
+      });
+      document.getElementById('snapshotGrid').innerHTML=html;
+    }
+
+    // Top 5
+    function renderTop5(data){
+      var sorted=data.slice().filter(function(r){return r.scoreAtDeath!=null&&isFinite(r.scoreAtDeath)}).sort(function(a,b){return b.scoreAtDeath-a.scoreAtDeath}).slice(0,5);
+      var grid=document.getElementById('top5Grid');
+      if(!sorted.length){grid.innerHTML='<div style="color:var(--muted);font-size:0.85rem;grid-column:1/-1;text-align:center;padding:20px;">No scored sessions yet.</div>';return;}
+      var labels=['1st','2nd','3rd','4th','5th'];
+      grid.innerHTML=sorted.map(function(r,i){
+        return '<div class="top5-card"><div class="top5-rank">'+labels[i]+' Place</div><div class="top5-score">'+Number(r.scoreAtDeath).toLocaleString()+'</div><div class="top5-detail">'+(r.date||'N/A')+'<br>'+(r.city!=='Unknown'?r.city:'')+(r.state!=='Unknown'&&r.city!=='Unknown'?', '+r.state:(r.state!=='Unknown'?r.state:''))+'<br>'+(r.deviceType!=='Unknown'?r.deviceType:'')+'</div></div>';
+      }).join('');
+    }
+
+    // Charts
+    function destroyCharts(){Object.keys(charts).forEach(function(k){if(charts[k]){charts[k].destroy();delete charts[k];}});}
+    function renderCharts(data){
+      destroyCharts();
+      Chart.defaults.color='#8899b4';
+      Chart.defaults.borderColor='rgba(255, 255, 255, 0.07)';
+      Chart.defaults.font.family='"JetBrains Mono","Consolas",monospace';
+      Chart.defaults.font.size=11;
+
+      // Timeline
+      var scored=data.filter(function(r){return r.scoreAtDeath!=null&&isFinite(r.scoreAtDeath)}).sort(function(a,b){return(a.ts||0)-(b.ts||0)});
+      var tlLabels=scored.map(function(r){return r.date||''});
+      var tlData=scored.map(function(r){return r.scoreAtDeath});
+      // Running average
+      var runAvg=[];var sum=0;
+      tlData.forEach(function(v,i){sum+=v;runAvg.push(Math.round(sum/(i+1)));});
+      charts.timeline=new Chart(document.getElementById('chartTimeline'),{
+        type:'line',
+        data:{
+          labels:tlLabels,
+          datasets:[
+            {label:'Score',data:tlData,borderColor:ACCENT[1],backgroundColor:'rgba(121,179,255,0.08)',fill:true,tension:0.3,pointRadius:2,pointHoverRadius:5,borderWidth:2},
+            {label:'Running Avg',data:runAvg,borderColor:ACCENT[3],borderDash:[5,3],tension:0.3,pointRadius:0,borderWidth:1.5,fill:false}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{labels:{usePointStyle:true,padding:14}}},scales:{y:{beginAtZero:true,grid:{color:'#1e2d45'}},x:{grid:{display:false},ticks:{maxTicksLimit:12,maxRotation:0}}}}
+      });
+
+      // Distribution
+      var buckets=[0,0,0,0,0,0];var bLabels=['0-100','100-500','500-1K','1K-5K','5K-10K','10K+'];
+      data.forEach(function(r){var s=r.scoreAtDeath;if(s==null||!isFinite(s))return;if(s<100)buckets[0]++;else if(s<500)buckets[1]++;else if(s<1000)buckets[2]++;else if(s<5000)buckets[3]++;else if(s<10000)buckets[4]++;else buckets[5]++;});
+      charts.dist=new Chart(document.getElementById('chartDistribution'),{
+        type:'bar',data:{labels:bLabels,datasets:[{label:'Sessions',data:buckets,backgroundColor:ACCENT.slice(0,6),borderColor:'transparent',borderRadius:6,barPercentage:0.7}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#1e2d45'},ticks:{precision:0}},x:{grid:{display:false}}}}
+      });
+
+      // Daily activity (last 30 days)
+      var now=new Date();var days={};
+      for(var i=29;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);days[d.toISOString().slice(0,10)]=0;}
+      data.forEach(function(r){var dt=getDateObj(r);if(dt){var k=dt.toISOString().slice(0,10);if(days.hasOwnProperty(k))days[k]++;}});
+      charts.daily=new Chart(document.getElementById('chartDaily'),{
+        type:'bar',data:{labels:Object.keys(days).map(function(k){return k.slice(5)}),datasets:[{label:'Sessions',data:Object.values(days),backgroundColor:ACCENT[0]+'80',borderColor:ACCENT[0],borderWidth:1,borderRadius:3}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#1e2d45'},ticks:{precision:0}},x:{grid:{display:false},ticks:{maxTicksLimit:10,maxRotation:0}}}}
+      });
+
+      // Cities
+      var cc={};data.forEach(function(r){var c=r.city&&r.city!=='Unknown'?r.city:null;if(c)cc[c]=(cc[c]||0)+1;});
+      var cs=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a]}).slice(0,10);
+      charts.cities=new Chart(document.getElementById('chartCities'),{
+        type:'bar',data:{labels:cs,datasets:[{label:'Sessions',data:cs.map(function(c){return cc[c]}),backgroundColor:ACCENT.concat(ACCENT).slice(0,cs.length),borderColor:'transparent',borderRadius:6,barPercentage:0.7}]},
+        options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#1e2d45'},ticks:{precision:0}},y:{grid:{display:false}}}}
+      });
+
+      // Devices
+      var dc={};data.forEach(function(r){var d=r.deviceType||'Unknown';dc[d]=(dc[d]||0)+1;});
+      var dl=Object.keys(dc).filter(function(k){return dc[k]>0});
+      charts.devices=new Chart(document.getElementById('chartDevices'),{
+        type:'doughnut',data:{labels:dl,datasets:[{data:dl.map(function(k){return dc[k]}),backgroundColor:ACCENT.slice(0,dl.length),borderColor:'#0d1224',borderWidth:3}]},
+        options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{padding:16,usePointStyle:true,pointStyleWidth:10}}}}
+      });
+    }
+
+    // Table
+    function sortData(data,col,asc){
+      return data.slice().sort(function(a,b){
+        var va,vb;
+        if(col==='score'){va=a.scoreAtDeath||0;vb=b.scoreAtDeath||0;}
+        else if(col==='date'){va=a.ts||0;vb=b.ts||0;}
+        else if(col==='time'){va=a.time||'';vb=b.time||'';}
+        else if(col==='timePlayed'){va=parseDuration(a.timePlayed);vb=parseDuration(b.timePlayed);}
+        else if(col==='city'){va=(a.city||'').toLowerCase();vb=(b.city||'').toLowerCase();}
+        else if(col==='state'){va=(a.state||'').toLowerCase();vb=(b.state||'').toLowerCase();}
+        else if(col==='device'){va=(a.deviceType||'').toLowerCase();vb=(b.deviceType||'').toLowerCase();}
+        else if(col==='mode'){va=(a.mode||'').toLowerCase();vb=(b.mode||'').toLowerCase();}
+        else if(col==='ip'){va=a.ipAddress||'';vb=b.ipAddress||'';}
+        else{va=a.ts||0;vb=b.ts||0;}
+        if(va<vb)return asc?-1:1;
+        if(va>vb)return asc?1:-1;
+        return 0;
+      });
+    }
+
+    function renderTable(){
+      var sorted=sortData(filteredData,sortCol,sortAsc);
+      var totalPages=Math.max(1,Math.ceil(sorted.length/PAGE_SIZE));
+      if(currentPage>=totalPages)currentPage=totalPages-1;
+      var start=currentPage*PAGE_SIZE;
+      var page=sorted.slice(start,start+PAGE_SIZE);
+
+      var tbody=document.getElementById('tableRows');
+      if(!sorted.length){tbody.innerHTML='<tr><td class="empty-row" colspan="9">No sessions found.</td></tr>';}
+      else{
+        var html='';
+        for(var i=0;i<page.length;i++){
+          var r=page[i];
+          html+='<tr><td>'+esc(r.date||'-')+'</td><td>'+esc(r.time||'-')+'</td><td class="score-cell">'+(r.scoreAtDeath!=null&&isFinite(r.scoreAtDeath)?Number(r.scoreAtDeath).toLocaleString():'-')+'</td><td>'+esc(r.timePlayed||'-')+'</td><td>'+esc(r.city)+'</td><td>'+esc(r.state)+'</td><td>'+esc(r.deviceType)+'</td><td>'+esc(r.mode||'-')+'</td><td>'+esc(r.ipAddress||'-')+'</td></tr>';
+        }
+        tbody.innerHTML=html;
+      }
+
+      document.getElementById('tableInfo').textContent='Showing '+(sorted.length?start+1:0)+'-'+Math.min(start+PAGE_SIZE,sorted.length)+' of '+sorted.length;
+
+      // Pagination
+      var pb=document.getElementById('pageBtns');
+      if(totalPages<=1){pb.innerHTML='';return;}
+      var btns='<button class="page-btn'+(currentPage===0?' active':'')+'" onclick="hsTable.goPage(0)">1</button>';
+      if(currentPage>3)btns+='<span style="color:var(--muted);padding:0 4px">...</span>';
+      for(var p=Math.max(1,currentPage-2);p<=Math.min(totalPages-2,currentPage+2);p++){
+        btns+='<button class="page-btn'+(currentPage===p?' active':'')+'" onclick="hsTable.goPage('+p+')">'+(p+1)+'</button>';
+      }
+      if(currentPage<totalPages-4)btns+='<span style="color:var(--muted);padding:0 4px">...</span>';
+      if(totalPages>1)btns+='<button class="page-btn'+(currentPage===totalPages-1?' active':'')+'" onclick="hsTable.goPage('+(totalPages-1)+')">'+(totalPages)+'</button>';
+      pb.innerHTML=btns;
+
+      // Sort arrows
+      document.querySelectorAll('#tableHead th').forEach(function(th){
+        var arrow=th.querySelector('.sort-arrow');
+        if(th.dataset.col===sortCol){arrow.textContent=sortAsc?'▲':'▼';}
+        else{arrow.textContent='';}
+      });
+    }
+
+    // Expose table nav
+    window.hsTable={goPage:function(p){currentPage=p;renderTable();}};
+
+    // Events
+    document.getElementById('tableHead').addEventListener('click',function(e){
+      var th=e.target.closest('th');if(!th||!th.dataset.col)return;
+      if(sortCol===th.dataset.col){sortAsc=!sortAsc;}else{sortCol=th.dataset.col;sortAsc=true;}
+      renderTable();
+    });
+
+    document.getElementById('tableSearch').addEventListener('input',function(e){
+      searchTerm=e.target.value.trim();
+      applyFilters();
+    });
+
+    document.getElementById('timeTabs').addEventListener('click',function(e){
+      var tab=e.target.closest('.time-tab');if(!tab)return;
+      document.querySelectorAll('.time-tab').forEach(function(t){t.classList.remove('active')});
+      tab.classList.add('active');
+      activeRange=tab.dataset.range;
+      applyFilters();
+    });
+
+    function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+    if(isAuthed())showDashboard();
+  })();
+  </script>
+  <script src="js/activity-logger.js" defer></script>
+</body>
+</html>
