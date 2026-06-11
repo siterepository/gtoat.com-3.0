@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   CatmullRomCurve3,
+  Color,
   DoubleSide,
   Mesh,
   ShaderMaterial,
@@ -28,6 +29,8 @@ const frag = /* glsl */ `
   varying vec3 vViewDir;
   uniform float uTime;
   uniform float uHue;
+  uniform vec3 uMoodTint;
+  uniform float uMoodAmt;
 
   // body palette — neon purple / cyan / pink
   vec3 ramp(float t) {
@@ -46,11 +49,24 @@ const frag = /* glsl */ `
     float along = fract(vUv.x + uHue);
     float facing = dot(n, v);
     vec3 base = ramp(fract(along + (1.0 - facing) * 0.22));
+    base = mix(base, base * uMoodTint * 2.2, uMoodAmt * 0.5);
+
+    // scale lattice — staggered diamond rows, denser along the body
+    vec2 sc = vec2(vUv.x * 110.0, vUv.y * 14.0);
+    sc.x += step(0.5, fract(sc.y * 0.5)); // brick offset every other row
+    vec2 cell = (fract(sc) - 0.5) * vec2(1.0, 1.45);
+    float cd = length(cell);
+    float scale = smoothstep(0.52, 0.30, cd);          // scale plate
+    float seam = 1.0 - smoothstep(0.30, 0.52, cd);      // valley between plates
 
     // half-lambert key light
     vec3 lightDir = normalize(vec3(0.4, 0.8, 0.65));
     float diff = dot(n, lightDir) * 0.5 + 0.5;
     diff = diff * diff;
+
+    // wet-skin specular, glinting per scale plate
+    vec3 h = normalize(lightDir + v);
+    float spec = pow(max(dot(n, h), 0.0), 56.0) * (0.35 + 0.65 * scale);
 
     // slither.io glow bands flowing toward the head
     float band = fract(vUv.x * 26.0 - uTime * 1.35);
@@ -59,11 +75,17 @@ const frag = /* glsl */ `
     // fresnel rim
     float rim = pow(1.0 - max(facing, 0.0), 2.6);
 
-    // belly darkening for volume
-    float belly = smoothstep(-0.9, 0.6, n.y) * 0.35 + 0.65;
+    // belly: lighter keeled plates underneath, darker top shading
+    float bellyMask = smoothstep(0.15, -0.55, n.y);
+    float keel = 0.85 + 0.15 * smoothstep(0.4, 0.5, fract(vUv.x * 60.0));
+    vec3 bellyCol = vec3(0.78, 0.86, 0.96) * diff * 0.42 * keel;
+    float topShade = smoothstep(-0.9, 0.6, n.y) * 0.35 + 0.65;
 
-    vec3 col = base * diff * 0.34 * belly;
-    col += base * stripe * 1.5;            // glow segments (bloom feeds on these)
+    vec3 col = base * diff * 0.34 * topShade;
+    col *= 0.72 + 0.28 * seam;                       // scale valleys read as texture
+    col = mix(col, bellyCol, bellyMask * 0.55);
+    col += base * stripe * 1.5;                      // glow segments (bloom feeds on these)
+    col += vec3(1.0) * spec * 0.5;
     col += vec3(0.0, 0.94, 1.0) * rim * 0.55;
     col += base * 0.05;
 
@@ -131,6 +153,8 @@ export class SerpentBody {
       uniforms: {
         uTime: { value: 0 },
         uHue: { value: 0 },
+        uMoodTint: { value: new Color(1, 1, 1) },
+        uMoodAmt: { value: 0 },
       },
       side: DoubleSide,
     })
@@ -146,7 +170,9 @@ export class SerpentBody {
     return 0.42 * grow * neck
   }
 
-  update(curve: CatmullRomCurve3, time: number, hue: number) {
+  update(curve: CatmullRomCurve3, time: number, hue: number, tint: Color, tintAmt: number) {
+    this.material.uniforms.uMoodTint.value.copy(tint)
+    this.material.uniforms.uMoodAmt.value = tintAmt
     const pos = this.posAttr.array as Float32Array
     const nrm = this.nrmAttr.array as Float32Array
 
