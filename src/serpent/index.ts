@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { camera, pointer, scene } from '../engine/stage'
+import { camera, pointer, renderer, scene } from '../engine/stage'
 import { onFrame } from '../engine/ticker'
 import { quality } from '../engine/quality'
 import { Locomotion } from './locomotion'
@@ -40,7 +40,13 @@ export function createSerpent() {
   }
 
   // dev introspection
-  ;(window as unknown as Record<string, unknown>).__GTOAT = { locomotion }
+  ;(window as unknown as Record<string, unknown>).__GTOAT = {
+    locomotion,
+    body,
+    head,
+    camera,
+    renderer,
+  }
 
   let view = viewExtents()
   window.addEventListener('resize', () => {
@@ -98,7 +104,7 @@ export function createSerpent() {
     prevGaze.copy(gazeWorld)
 
     head.setExpression(EXPRESSION_BY_STATE[locomotion.state])
-    head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed)
+    head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed, mood.current.tint)
     orbs.update(time, headPos, mood.current.orb)
 
     // camera rig — pointer parallax, breathing drift, mood depth
