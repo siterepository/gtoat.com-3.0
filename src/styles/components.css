@@ -355,6 +355,9 @@ a.card {
   margin-top: 1rem;
   padding-left: 2rem;
 }
+.tl {
+  --tl-draw: 1;
+}
 .tl::before {
   content: '';
   position: absolute;
@@ -364,6 +367,7 @@ a.card {
   width: 2px;
   background: linear-gradient(180deg, var(--gold), rgba(245, 158, 11, 0.05));
   transform-origin: top;
+  transform: scaleY(var(--tl-draw));
 }
 .tle {
   position: relative;
