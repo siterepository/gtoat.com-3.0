@@ -87,6 +87,7 @@ export class SerpentBody {
   // scratch
   private p = new Vector3()
   private tangent = new Vector3()
+  private prevTangent = new Vector3()
   private normal = new Vector3()
   private binormal = new Vector3()
   private radialVec = new Vector3()
@@ -148,7 +149,6 @@ export class SerpentBody {
   update(curve: CatmullRomCurve3, time: number, hue: number) {
     const pos = this.posAttr.array as Float32Array
     const nrm = this.nrmAttr.array as Float32Array
-    let prevTangent: Vector3 | null = null
 
     for (let i = 0; i <= this.segments; i++) {
       const t = i / this.segments
@@ -156,19 +156,19 @@ export class SerpentBody {
       curve.getTangentAt(t, this.tangent)
 
       // parallel-transport-ish frame: keep normal stable vs previous tangent
-      if (!prevTangent) {
+      if (i === 0) {
         this.normal.crossVectors(this.tangent, this.up)
         if (this.normal.lengthSq() < 1e-5) this.normal.set(1, 0, 0)
         this.normal.normalize()
       } else {
-        this.binormal.crossVectors(prevTangent, this.tangent)
+        this.binormal.crossVectors(this.prevTangent, this.tangent)
         if (this.binormal.lengthSq() > 1e-7) {
           this.binormal.normalize()
-          const angle = Math.acos(Math.min(1, Math.max(-1, prevTangent.dot(this.tangent))))
+          const angle = Math.acos(Math.min(1, Math.max(-1, this.prevTangent.dot(this.tangent))))
           this.normal.applyAxisAngle(this.binormal, angle)
         }
       }
-      prevTangent = prevTangent ? prevTangent.copy(this.tangent) : this.tangent.clone()
+      this.prevTangent.copy(this.tangent)
       this.binormal.crossVectors(this.tangent, this.normal).normalize()
 
       // breathing — faint pulse traveling the body

@@ -11,6 +11,7 @@ export class Spine {
   curve: CatmullRomCurve3
   private pts: Vector3[] = []
   private headTarget = new Vector3()
+  private neckTarget = new Vector3()
 
   constructor() {
     for (let i = 0; i < POINTS; i++) this.pts.push(new Vector3())
@@ -46,10 +47,9 @@ export class Spine {
     head.lerp(this.headTarget, 0.22)
 
     // neck follows softly for continuity
-    this.pts[POINTS - 2].lerp(
-      new Vector3().copy(head).add(new Vector3(0, 0, -1.4)),
-      0.1,
-    )
+    this.neckTarget.copy(head)
+    this.neckTarget.z -= 1.4
+    this.pts[POINTS - 2].lerp(this.neckTarget, 0.1)
 
     this.curve.updateArcLengths()
   }

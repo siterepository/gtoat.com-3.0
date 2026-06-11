@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /hs.html
+Disallow: /al.html
+
+Sitemap: https://gtoat.com/sitemap.xml
