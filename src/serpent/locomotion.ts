@@ -162,9 +162,12 @@ export class Locomotion {
     if (this.speed < 0.02) this.speed = 0
 
     // ── integrate ─────────────────────────────────────────────────────
+    // thrust pulses with the undulation — snakes push in strokes, not
+    // like motors
+    const surge = 1 + 0.09 * Math.sin(this.travel * 1.7 + time * 0.8 - 0.7)
     const hx = Math.cos(this.heading)
     const hy = Math.sin(this.heading)
-    this.velocity.set(hx * this.speed, hy * this.speed, 0)
+    this.velocity.set(hx * this.speed * surge, hy * this.speed * surge, 0)
     this.travel += this.speed * clampedDt
 
     // undulation rides the path; at rest it fades to a faint breathe

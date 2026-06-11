@@ -5,11 +5,31 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(5rem, 12vh, 8rem) var(--gutter);
+  perspective: 1400px; /* sections swing through 3D space on scroll */
 }
 .sec-in {
   width: 100%;
   max-width: var(--sec-w);
   margin: 0 auto;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* serpentine flow — content zig-zags opposite the serpent's lane,
+   echoing the 2.x maze scroll */
+@media (min-width: 1100px) {
+  .flow-l .sec-in,
+  .flow-r .sec-in {
+    max-width: 960px;
+  }
+  .flow-l .sec-in {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  .flow-r .sec-in {
+    margin-left: auto;
+    margin-right: 0;
+  }
 }
 .sec-head {
   margin-bottom: 2.4rem;

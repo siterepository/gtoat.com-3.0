@@ -33,7 +33,14 @@ export function createSerpent() {
     rayDir.set(nx, ny, 0.5).unproject(camera).sub(camera.position).normalize()
     const t = -camera.position.z / rayDir.z
     out.copy(camera.position).addScaledVector(rayDir, t)
+    // zero-size viewport (pre-layout boot) yields NaN — never feed it forward
+    if (!Number.isFinite(out.x) || !Number.isFinite(out.y) || !Number.isFinite(out.z)) {
+      out.set(0, 0, 0)
+    }
   }
+
+  // dev introspection
+  ;(window as unknown as Record<string, unknown>).__GTOAT = { locomotion }
 
   let view = viewExtents()
   window.addEventListener('resize', () => {
@@ -55,8 +62,18 @@ export function createSerpent() {
   let eaten = 0
   orbs.onEat = () => {
     eaten++
+    head.reactEat()
     document.dispatchEvent(new CustomEvent('gtoat:eat', { detail: eaten }))
   }
+
+  const EXPRESSION_BY_STATE = {
+    chase: 'alert',
+    rest: 'focused',
+    play: 'playful',
+    wander: 'neutral',
+  } as const
+
+  const prevGaze = new Vector3()
 
   onFrame((time, dt) => {
     // the head hunts a DELAYED pointer — weight and intent in the pursuit
@@ -75,7 +92,13 @@ export function createSerpent() {
     body.update(locomotion.curve, time, mood.current.serpentHue, mood.current.tint, mood.current.tintAmt)
     locomotion.headPosition(headPos)
     locomotion.headDirection(headDir)
-    head.update(headPos, headDir, gazeWorld, time)
+
+    // pointer speed (world units/s) feeds pupil dilation
+    const pointerSpeed = dt > 0 ? prevGaze.distanceTo(gazeWorld) / dt : 0
+    prevGaze.copy(gazeWorld)
+
+    head.setExpression(EXPRESSION_BY_STATE[locomotion.state])
+    head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed)
     orbs.update(time, headPos, mood.current.orb)
 
     // camera rig — pointer parallax, breathing drift, mood depth
