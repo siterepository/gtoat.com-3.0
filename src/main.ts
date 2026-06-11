@@ -13,6 +13,8 @@ import { runPreloader } from './ui/preloader'
 import { initNav } from './ui/nav'
 import { initProgress } from './ui/progress'
 import { initReveals } from './sections/reveals'
+import { initChoreography } from './sections/choreography'
+import { initInteractions } from './sections/interactions'
 
 document.body.dataset.quality = quality.tier
 if (quality.reducedMotion) document.body.classList.add('motion-off')
@@ -27,6 +29,8 @@ startStage()
 initNav()
 initProgress()
 initReveals()
+initChoreography()
+initInteractions()
 
 runPreloader().then(() => {
   document.dispatchEvent(new CustomEvent('gtoat:ready'))
