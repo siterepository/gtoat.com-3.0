@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="description" content="GTOAT - The Greatest Team Of All Time, dominating Slither.io with style and strategy." />
+  <meta name="keywords" content="GTOAT, Slither.io, gaming, team, Discord, GRINCH" />
+  <meta name="author" content="GTOAT Team" />
+  <meta name="theme-color" content="#04060d" />
+  <meta property="og:title" content="GTOAT - Greatest Team Of All Time" />
+  <meta property="og:description" content="Elite Slither.io dominance, relentless discipline, and the loudest team on the board." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://gtoat.com/img/banner_bg.png" />
+  <meta property="og:url" content="https://gtoat.com/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="GTOAT - Greatest Team Of All Time" />
+  <meta name="twitter:description" content="Elite Slither.io dominance, relentless discipline, and the loudest team on the board." />
+  <meta name="twitter:image" content="https://gtoat.com/img/banner_bg.png" />
+  <link rel="canonical" href="https://gtoat.com/" />
+  <title>GTOAT — Greatest Team Of All Time</title>
+  <link rel="icon" href="/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@500;700;900&family=Syne:wght@400;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "GTOAT",
+      "url": "https://gtoat.com/",
+      "logo": "https://gtoat.com/img/logo.png",
+      "description": "Elite Slither.io dominance.",
+      "sameAs": [
+        "https://discord.com/users/1051910783526772808",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://twitter.com/gtoatg"
+      ]
+    }
+  </script>
+</head>
+<body data-quality="auto">
+  <!-- ═══ PRELOADER ═══ -->
+  <div id="preloader" aria-hidden="true">
+    <div class="pre-core">
+      <svg class="pre-serpent" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+        <path class="pre-coil" d="M60 12a48 48 0 1 1-33.9 14.1" stroke="url(#preGrad)" stroke-width="3" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="preGrad" x1="0" y1="0" x2="120" y2="120">
+            <stop offset="0" stop-color="#b24dff"/><stop offset=".5" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff3d8e"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <p class="pre-tag">[GTOAT] CLASSIFIED</p>
+      <p class="pre-status" id="preStatus">DECRYPTING DOSSIER…</p>
+      <div class="pre-bar"><div class="pre-fill" id="preFill"></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ WEBGL STAGE ═══ -->
+  <canvas id="gl" aria-hidden="true"></canvas>
+
+  <!-- ═══ CHROME ═══ -->
+  <div id="prog" role="presentation"></div>
+
+  <header class="nav" id="nav">
+    <div class="nav-in">
+      <a class="nav-logo" href="#home" aria-label="GTOAT home">
+        <img src="/img/logo.png" alt="GTOAT crest" width="120" height="30" />
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#brief">Origin</a>
+        <a href="#players">Roster</a>
+        <a href="#updates">Intel</a>
+        <a href="#lore">Lore</a>
+        <a href="#media">Media</a>
+        <a href="#contact" class="nav-cta">Enlist</a>
+      </nav>
+      <button class="nav-ham" id="navHam" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="dots" id="dots" aria-label="Sections"></nav>
+
+  <main id="smooth">
+    <!-- ═══ 1 · HERO ═══ -->
+    <section class="scr scr-hero" id="home" data-scene="hero">
+      <div class="hero-in">
+        <p class="hero-kicker rv mono">[GTOAT] // DOSSIER 3.0 — EYES ONLY</p>
+        <h1 class="hero-h" aria-label="Greatest Joke Of All Time">
+          <span class="hero-line rv">GREATEST</span>
+          <span class="hero-line hero-g rv">JOKE OF</span>
+          <span class="hero-line rv">ALL TIME</span>
+        </h1>
+        <p class="hero-sub rv">Elite Slither.io dominance, relentless discipline, and the loudest team on the board.</p>
+
+        <div class="hero-cta rv">
+          <p class="play-label mono"><span class="arr arr-l">▶</span> CLICK TO PLAY <span class="arr arr-r">▶</span></p>
+          <button class="btn-play" id="playBtn" type="button" aria-label="Play GRINCH.io">
+            <span class="clown" aria-hidden="true">
+              <span class="clown-face">🤡</span>
+              <span class="eye eye-l"><span class="pupil"></span></span>
+              <span class="eye eye-r"><span class="pupil"></span></span>
+            </span>
+            GRINCH.io
+          </button>
+        </div>
+
+        <div class="hero-meta rv">
+          <a class="chip" href="tel:+18884862820"><span class="badge badge-ph mono">TEL</span>(888)-GTOAT-20</a>
+          <a class="chip" href="https://discordapp.com/users/1051910783526772808" target="_blank" rel="noopener"><span class="badge badge-dc mono">DC</span>@GTOAT</a>
+          <a class="chip" href="https://www.youtube.com/shorts/feva1L-qs08" target="_blank" rel="noopener"><span class="badge badge-yt mono">YT</span>Join The Movement</a>
+        </div>
+        <div class="hero-music rv mono">
+          <span class="music-label">THE ANTHEM:</span>
+          <a href="https://music.youtube.com/watch?v=KZkuAFyZfio" target="_blank" rel="noopener">YT Music</a>
+          <a href="https://open.spotify.com/track/1aQ7CBPOohTI2zD0mvukNN" target="_blank" rel="noopener">Spotify</a>
+          <a href="https://music.apple.com/us/album/grinchs-speech/1814854157?i=1814854158" target="_blank" rel="noopener">Apple Music</a>
+        </div>
+      </div>
+      <div class="scroll-hint mono" aria-hidden="true">SCROLL<span class="hint-chev">⌄</span></div>
+    </section>
+
+    <!-- ═══ 2 · THE BRIEF ═══ -->
+    <section class="scr scr-brief" id="brief" data-scene="brief">
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono gold">STRATEGY</p>
+          <h2 class="sec-title">The <span class="g">Origin</span></h2>
+          <p class="sec-sub">GRINCH didn't just drop a song — he detonated a masterpiece. Engineered to live rent-free.</p>
+        </header>
+
+        <p class="typeline mono" id="typeline" data-text="GRINCH needs your HELP! If Bella ain't Happy, NO ONE IS! We can't let that happen! Join GTOAT and feed Bella!" aria-label="GRINCH needs your HELP! If Bella ain't Happy, NO ONE IS! We can't let that happen! Join GTOAT and feed Bella!"><span class="caret"></span></p>
+
+        <div class="brief-grid">
+          <article class="card brief-card">
+            <h4>Strategy</h4>
+            <p>Go incog. Psychological warfare mastered. When noobs flex, we don't trip — we execute.</p>
+          </article>
+          <article class="card brief-card">
+            <h4>The Anthem</h4>
+            <p>GRINCH didn't just drop a song — he detonated a masterpiece. Engineered to live rent-free.</p>
+          </article>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+          <div class="stat"><span class="stat-n orbitron" data-count="1247">0</span><span class="stat-l mono">VICTORIES</span></div>
+          <div class="stat"><span class="stat-n orbitron" data-count="4">0</span><span class="stat-l mono">LEGENDS</span></div>
+          <div class="stat"><span class="stat-n orbitron" data-count="98214">0</span><span class="stat-l mono">SLITHERS</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 3 · ROSTER ═══ -->
+    <section class="scr scr-roster" id="players" data-scene="roster">
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono gold">PERSONNEL</p>
+          <h2 class="sec-title">The <span class="g">Roster</span></h2>
+          <p class="sec-sub">Every card is a warning label.</p>
+        </header>
+
+        <div class="roster-grid">
+          <article class="dos" tabindex="0">
+            <p class="dos-tag mono">[GTOAT] PRIME</p>
+            <h3 class="dos-name">GRINCH Prime</h3>
+            <p class="dos-role">Strategy Overlord. Feeds Bella. Runs the show. Slithers with intent. Unmatched.</p>
+            <div class="thr"><span class="thr-l mono">THREAT LEVEL</span><span class="thr-v orbitron">92%</span>
+              <div class="thr-b"><div class="thr-f" style="--thr:92%"></div></div>
+            </div>
+          </article>
+          <article class="dos" tabindex="0">
+            <p class="dos-tag mono">[GTOAT] PROTOCOL</p>
+            <h3 class="dos-name">Bella Protocol</h3>
+            <p class="dos-role">Morale engine. Happiness is mandatory. When Bella's happy, everyone eats.</p>
+            <div class="thr"><span class="thr-l mono">THREAT LEVEL</span><span class="thr-v orbitron">88%</span>
+              <div class="thr-b"><div class="thr-f" style="--thr:88%"></div></div>
+            </div>
+          </article>
+          <article class="dos" tabindex="0">
+            <p class="dos-tag mono">[GTOAT] STEALTH</p>
+            <h3 class="dos-name">Incog Elite</h3>
+            <p class="dos-role">Ghost division. Stealth verified. Nobody sees the carry coming.</p>
+            <div class="thr"><span class="thr-l mono">THREAT LEVEL</span><span class="thr-v orbitron">85%</span>
+              <div class="thr-b"><div class="thr-f" style="--thr:85%"></div></div>
+            </div>
+          </article>
+          <article class="dos" tabindex="0">
+            <p class="dos-tag mono">[GTOAT] FUNDING</p>
+            <h3 class="dos-name">Breeze</h3>
+            <p class="dos-role">Infinite budget for propaganda, vibes, and dominance theater.</p>
+            <div class="thr"><span class="thr-l mono">THREAT LEVEL</span><span class="thr-v orbitron">94%</span>
+              <div class="thr-b"><div class="thr-f" style="--thr:94%"></div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 4 · INTEL FEED ═══ -->
+    <section class="scr scr-intel" id="updates" data-scene="intel">
+      <span id="intel" class="anchor-alias" aria-hidden="true"></span>
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono cyan">INTELLIGENCE</p>
+          <h2 class="sec-title">Intel <span class="g">Feed</span></h2>
+        </header>
+
+        <div class="tabs mono" id="intelTabs" role="tablist" aria-label="Filter intel">
+          <button class="tab is-on" data-f="all" role="tab" aria-selected="true">All</button>
+          <button class="tab" data-f="reddit" role="tab" aria-selected="false">Reddit</button>
+          <button class="tab" data-f="youtube" role="tab" aria-selected="false">YouTube</button>
+          <button class="tab" data-f="social" role="tab" aria-selected="false">Social</button>
+          <button class="tab" data-f="gaming" role="tab" aria-selected="false">Gaming</button>
+        </div>
+
+        <div class="intel-grid" id="intelGrid">
+          <a class="card intel-card" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/11ocbuo" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Anti-GTOAT recruitment drive</h4><p>Playful rivalry energy and community coordination.</p></a>
+          <a class="card intel-card" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/l6pcnt" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Who are GTOAT?</h4><p>Thread debating the team identity.</p></a>
+          <a class="card intel-card" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/l2m4sl" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Scoreboard encounter report</h4><p>High score thread — multiple GTOAT sightings.</p></a>
+          <a class="card intel-card" data-p="youtube" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener"><span class="badge badge-yt mono">YT</span><h4>They never miss</h4><p>Scoreboard inflation conspiracy #442.</p></a>
+          <a class="card intel-card" data-p="youtube" href="https://youtu.be/eQtD4Vb_aPI" target="_blank" rel="noopener"><span class="badge badge-yt mono">YT</span><h4>Why are they everywhere?</h4><p>Omnipresence detected.</p></a>
+          <a class="card intel-card" data-p="social" href="https://twitter.com/gtoatg" target="_blank" rel="noopener"><span class="badge badge-x mono">X</span><h4>@gtoatg on X</h4><p>Official GTOAT presence.</p></a>
+          <a class="card intel-card x-hide" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/m0ffnb/what_clan_u_support_the_most/" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Clan support roll-call</h4><p>GTOAT listed among top clan allegiances.</p></a>
+          <a class="card intel-card x-hide" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/1r5zyj1/is_sn_a_good_clan/" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Teams and late-night grinds</h4><p>Players vent about team dynamics.</p></a>
+          <a class="card intel-card x-hide" data-p="reddit" href="https://www.reddit.com/r/Slitherio/comments/l74ft2" target="_blank" rel="noopener"><span class="badge badge-rd mono">REDDIT</span><h4>Discord server rollout</h4><p>Community thread with GTOAT roles.</p></a>
+          <a class="card intel-card x-hide" data-p="youtube" href="https://www.youtube.com/shorts/feva1L-qs08" target="_blank" rel="noopener"><span class="badge badge-yt mono">YT</span><h4>Join The Movement</h4><p>Propaganda escalation in progress.</p></a>
+          <a class="card intel-card x-hide" data-p="social" href="https://www.tiktok.com/@monntekarlo" target="_blank" rel="noopener"><span class="badge badge-tt mono">TIKTOK</span><h4>MONNTEKARLO on TikTok</h4><p>World record trapping content.</p></a>
+          <a class="card intel-card x-hide" data-p="social" href="https://soundcloud.com/gtoat-chunny-on-slitherio" target="_blank" rel="noopener"><span class="badge badge-sc mono">SC</span><h4>GTOAT Chunny on SoundCloud</h4><p>Original tracks by Chunny.</p></a>
+          <a class="card intel-card x-hide" data-p="social" href="https://www.instagram.com/explore/tags/gtoat/" target="_blank" rel="noopener"><span class="badge badge-ig mono">IG</span><h4>#gtoat on Instagram</h4><p>Community content and tagged posts.</p></a>
+          <a class="card intel-card x-hide" data-p="social" href="https://www.tiktok.com/tag/gtoat" target="_blank" rel="noopener"><span class="badge badge-tt mono">TIKTOK</span><h4>#gtoat on TikTok</h4><p>GTOAT-tagged videos.</p></a>
+          <a class="card intel-card x-hide" data-p="social" href="https://www.facebook.com/public/GToat" target="_blank" rel="noopener"><span class="badge badge-fb mono">FB</span><h4>GTOAT on Facebook</h4><p>Community profiles and mentions.</p></a>
+          <a class="card intel-card x-hide" data-p="gaming" href="https://discordapp.com/users/1051910783526772808" target="_blank" rel="noopener"><span class="badge badge-dc mono">DC</span><h4>Join on Discord</h4><p>Direct link to GTOAT Discord.</p></a>
+          <a class="card intel-card x-hide" data-p="gaming" href="https://slitherio.fandom.com/f" target="_blank" rel="noopener"><span class="badge badge-gm mono">WIKI</span><h4>Slither.io Wiki</h4><p>GTOAT discussed on Fandom.</p></a>
+          <a class="card intel-card x-hide" data-p="gaming" href="https://forums.ootpdevelopments.com/showthread.php?t=317244" target="_blank" rel="noopener"><span class="badge badge-gm mono">FORUM</span><h4>GTOAT Tournament</h4><p>OOTP sim tournament.</p></a>
+          <a class="card intel-card x-hide" data-p="gaming" href="https://www.pinterest.com/GTOATLogos/" target="_blank" rel="noopener"><span class="badge badge-pt mono">PIN</span><h4>GTOATLogos on Pinterest</h4><p>Logo designs and branding.</p></a>
+          <a class="card intel-card x-hide" data-p="gaming" href="https://www.hashtags.org/analytics/GToAT/" target="_blank" rel="noopener"><span class="badge badge-gm mono">DATA</span><h4>#GTOAT Analytics</h4><p>Hashtag tracking data.</p></a>
+        </div>
+        <button class="btn-ghost mono" id="intelMore" type="button">Show More <span class="badge">+14</span></button>
+      </div>
+    </section>
+
+    <!-- ═══ 5 · COMMUNITY REVIEWS ═══ -->
+    <section class="scr scr-reviews" id="reviews" data-scene="reviews">
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono cyan">INTEL</p>
+          <h2 class="sec-title">Community <span class="g">Reviews</span></h2>
+        </header>
+
+        <div class="reviews-grid">
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/11ocbuo" target="_blank" rel="noopener">
+            <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono rant">RANT</span>
+            <h4>Anti-GTOAT Recruitment Drive</h4><p>Playful rivalry energy with scoreboard grief counseling.</p>
+            <span class="rv-int" aria-label="Intensity 4 of 5">★★★★<i>★</i></span>
+          </a>
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/l6pcnt" target="_blank" rel="noopener">
+            <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono rivalry">RIVALRY</span>
+            <h4>Who Are GTOAT?</h4><p>Thread debating the team identity, motivations, and slither dominance.</p>
+            <span class="rv-int" aria-label="Intensity 5 of 5">★★★★★</span>
+          </a>
+          <a class="card review-card" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">
+            <span class="badge badge-yt mono">YT</span><span class="rv-tag mono praise">PRAISE</span>
+            <h4>They Never Miss</h4><p>Scoreboard inflation conspiracy confirmed by visual evidence.</p>
+            <span class="rv-int" aria-label="Intensity 5 of 5">★★★★★</span>
+          </a>
+          <a class="card review-card" href="https://open.spotify.com/track/1aQ7CBPOohTI2zD0mvukNN" target="_blank" rel="noopener">
+            <span class="badge badge-sp mono">MUSIC</span><span class="rv-tag mono praise">PRAISE</span>
+            <h4>GRINCH's Speech</h4><p>The anthem. Available on Spotify, Apple Music, YouTube Music.</p>
+            <span class="rv-int" aria-label="Intensity 5 of 5">★★★★★</span>
+          </a>
+          <a class="card review-card" href="https://youtu.be/eQtD4Vb_aPI" target="_blank" rel="noopener">
+            <span class="badge badge-yt mono">YT</span><span class="rv-tag mono mention">MENTION</span>
+            <h4>Why Are They Everywhere?</h4><p>Omnipresence detected. Witnesses remain confused.</p>
+            <span class="rv-int" aria-label="Intensity 4 of 5">★★★★<i>★</i></span>
+          </a>
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/l2m4sl" target="_blank" rel="noopener">
+            <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono mention">MENTION</span>
+            <h4>Scoreboard Encounter Report</h4><p>Multiple GTOAT sightings logged in a single high-score thread.</p>
+            <span class="rv-int" aria-label="Intensity 3 of 5">★★★<i>★★</i></span>
+          </a>
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/l74ft2" target="_blank" rel="noopener">
+            <span class="badge badge-dc mono">DISCORD</span><span class="rv-tag mono mention">MENTION</span>
+            <h4>Discord Server Rollout</h4><p>Community thread with GTOAT roles. Recruitment pipeline operational.</p>
+            <span class="rv-int" aria-label="Intensity 3 of 5">★★★<i>★★</i></span>
+          </a>
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/m0ffnb/what_clan_u_support_the_most/" target="_blank" rel="noopener">
+            <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono praise">PRAISE</span>
+            <h4>Clan Support Roll-Call</h4><p>GTOAT listed among top clan allegiances by the community.</p>
+            <span class="rv-int" aria-label="Intensity 4 of 5">★★★★<i>★</i></span>
+          </a>
+          <a class="card review-card" href="https://soundcloud.com/gtoat-chunny-on-slitherio" target="_blank" rel="noopener">
+            <span class="badge badge-sc mono">MUSIC</span><span class="rv-tag mono praise">PRAISE</span>
+            <h4>Chunny Originals</h4><p>Original tracks by Chunny. Soundtrack of dominance theater.</p>
+            <span class="rv-int" aria-label="Intensity 4 of 5">★★★★<i>★</i></span>
+          </a>
+          <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/1r5zyj1/is_sn_a_good_clan/" target="_blank" rel="noopener">
+            <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono rivalry">RIVALRY</span>
+            <h4>Teams And Late-Night Grinds</h4><p>Players vent about team dynamics. GTOAT remains unbothered.</p>
+            <span class="rv-int" aria-label="Intensity 3 of 5">★★★<i>★★</i></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 6 · FULL LORE ═══ -->
+    <section class="scr scr-lore" id="lore" data-scene="lore">
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono gold">CHRONICLE</p>
+          <h2 class="sec-title">Full <span class="g">Lore</span></h2>
+        </header>
+
+        <ol class="tl">
+          <li class="tle">
+            <h3>Early Life</h3>
+            <p>Before GRINCH was GRINCH, there was just a kid with an internet connection and zero chill. Slither.io wasn't a game — it was a calling. The moment the leaderboard appeared, it became personal.</p>
+          </li>
+          <li class="tle">
+            <h3>Unexpected Love</h3>
+            <p>Bella entered the picture and changed everything. What started as a casual duo became doctrine. Bella's happiness became the mission — and GOD MODE became policy.</p>
+          </li>
+          <li class="tle">
+            <h3>Identity Crisis</h3>
+            <p>Who was GRINCH? A player? A brand? A meme? The identity fractured and reformed stronger. The tag [GTOAT] became a statement, not just a clan prefix.</p>
+          </li>
+          <li class="tle">
+            <h3>Realization &amp; Inception</h3>
+            <p>GRINCH realized that slither.io wasn't just about high scores — it was about legacy. GTOAT was founded as a vehicle for permanent scoreboard dominance and cultural warfare.</p>
+          </li>
+          <li class="tle">
+            <h3>Codification &amp; Doctrine</h3>
+            <p>Everything was systematized: incognito tactics, tempo control, psychological theater. GTOAT operations became repeatable, scalable, and inevitable.</p>
+          </li>
+          <li class="tle">
+            <h3>The Legacy Continues</h3>
+            <p>GTOAT isn't finished — it's expanding. Through players, media, lore operations, and now this very website, GRINCH reorganized slither.io's entire gravitational field.</p>
+          </li>
+        </ol>
+
+        <div class="ego-meter">
+          <span class="ego-label mono">LEGACY INDEX</span>
+          <div class="ego-bar"><div class="ego-fill"></div></div>
+          <span class="ego-v orbitron">∞</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 7 · MEDIA DIRECTORY ═══ -->
+    <section class="scr scr-media" id="media" data-scene="media">
+      <div class="sec-in">
+        <header class="sec-head">
+          <p class="sec-tag mono purple">MEDIA</p>
+          <h2 class="sec-title">Media <span class="g">Directory</span></h2>
+        </header>
+
+        <div class="media-list">
+          <a class="card ml" href="https://www.youtube.com/shorts/feva1L-qs08" target="_blank" rel="noopener">
+            <span class="badge badge-yt mono">YT</span>
+            <div><h4>Recruitment Short</h4><p>Join The Movement propaganda.</p></div><span class="ml-arr">→</span>
+          </a>
+          <a class="card ml" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">
+            <span class="badge badge-yt mono">YT</span>
+            <div><h4>Momentum Highlight</h4><p>They never miss — scoreboard dominance.</p></div><span class="ml-arr">→</span>
+          </a>
+          <a class="card ml" href="https://open.spotify.com/track/1aQ7CBPOohTI2zD0mvukNN" target="_blank" rel="noopener">
+            <span class="badge badge-sp mono">SPOTIFY</span>
+            <div><h4>GRINCH's Speech</h4><p>Streaming edition — the anthem.</p></div><span class="ml-arr">→</span>
+          </a>
+          <a class="card ml" href="https://music.apple.com/us/album/grinchs-speech/1814854157?i=1814854158" target="_blank" rel="noopener">
+            <span class="badge badge-ap mono">APPLE</span>
+            <div><h4>GRINCH's Speech</h4><p>Apple Music — supremacy certified.</p></div><span class="ml-arr">→</span>
+          </a>
+          <a class="card ml" href="https://chrome.google.com/webstore/detail/ntl-mod-for-slitherio/hpgaehmokjbdfkbgkeifbfogjalkpfgb?hl=en-US" target="_blank" rel="noopener">
+            <span class="badge badge-gm mono">TOOL</span>
+            <div><h4>NTL Mod Extension</h4><p>Chrome extension for Slither.io.</p></div><span class="ml-arr">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 8 · CONTACT ═══ -->
+    <section class="scr scr-connect" id="contact" data-scene="contact">
+      <div class="sec-in connect-grid">
+        <div class="connect-left">
+          <h2 class="connect-h">
+            <span class="hero-line">LET'S</span>
+            <span class="hero-line hero-g">CONNECT</span>
+          </h2>
+          <p class="sec-sub">Ready to join the greatest team in Slither.io history? Drop us a message.</p>
+          <div class="chips">
+            <a class="chip" href="https://discordapp.com/users/1051910783526772808" target="_blank" rel="noopener"><span class="badge badge-dc mono">DC</span>Discord</a>
+            <a class="chip" href="https://twitter.com/gtoatg" target="_blank" rel="noopener"><span class="badge badge-x mono">X</span>Twitter</a>
+            <a class="chip" href="tel:+18884862820"><span class="badge badge-ph mono">TEL</span>(888)-GTOAT-20</a>
+            <a class="chip" href="https://www.tiktok.com/@monntekarlo" target="_blank" rel="noopener"><span class="badge badge-tt mono">TT</span>TikTok</a>
+            <a class="chip" href="https://soundcloud.com/gtoat-chunny-on-slitherio" target="_blank" rel="noopener"><span class="badge badge-sc mono">SC</span>SoundCloud</a>
+          </div>
+        </div>
+
+        <form class="cf card" id="contactForm" novalidate>
+          <label for="cf-ign" class="mono">IN-GAME NAME</label>
+          <input id="cf-ign" name="inGameName" type="text" placeholder="Your Slither.io name" required autocomplete="off" />
+          <label for="cf-discord" class="mono">DISCORD USERNAME</label>
+          <input id="cf-discord" name="discordUsername" type="text" placeholder="username#0000" required autocomplete="off" spellcheck="false" />
+          <label for="cf-message" class="mono">MESSAGE</label>
+          <textarea id="cf-message" name="message" rows="5" placeholder="Tell us why you're ready…" required></textarea>
+          <button class="btn-send" id="cfSend" type="submit">SEND MESSAGE</button>
+          <p class="fst mono" id="cfStatus" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <footer class="ftr">
+        <p class="ftr-c mono">GTOAT © <span id="year"></span><a class="ftr-hidden" href="/hs.html" tabindex="-1" aria-hidden="true">.</a></p>
+        <nav class="ftr-s mono" aria-label="Social">
+          <a href="https://twitter.com/gtoatg" target="_blank" rel="noopener">X</a>
+          <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">YT</a>
+          <a href="https://discord.com/users/1051910783526772808" target="_blank" rel="noopener">DC</a>
+          <a href="https://www.tiktok.com/@monntekarlo" target="_blank" rel="noopener">TT</a>
+          <a href="https://www.instagram.com/explore/tags/gtoat/" target="_blank" rel="noopener">IG</a>
+          <a href="https://www.pinterest.com/GTOATLogos/" target="_blank" rel="noopener">PIN</a>
+        </nav>
+        <p class="ftr-c2 mono">EYES ONLY // DOSSIER CLOSES ITSELF<a class="ftr-hidden ftr-hidden2" href="/al.html" tabindex="-1" aria-hidden="true">.</a></p>
+      </footer>
+    </section>
+  </main>
+
+  <!-- ═══ GAME OVERLAY ═══ -->
+  <div class="sl-ov" id="gameOverlay" hidden>
+    <div class="sl-head mono">
+      <span id="slTime">00:00</span><span id="slScore">SCORE 0</span><span id="slRank">RANK —</span>
+      <button class="sl-x" id="gameClose" type="button" aria-label="Close game">✕</button>
+    </div>
+    <canvas class="sl-c" id="gameCanvas"></canvas>
+    <p class="sl-hint mono">Use arrow keys or mouse to move. Eat pellets. Don't hit walls or other snakes.</p>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
