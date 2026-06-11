@@ -1,5 +1,6 @@
 import {
   BoxGeometry,
+  Color,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -7,6 +8,7 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three'
+import { SerpentEye } from './eye'
 
 const skullVert = /* glsl */ `
   varying vec3 vNormal;
@@ -30,7 +32,6 @@ const skullFrag = /* glsl */ `
     vec3 lightDir = normalize(vec3(0.4, 0.8, 0.65));
     float diff = dot(n, lightDir) * 0.5 + 0.5;
     diff *= diff;
-    // soft fill bounced from below — kills the flat-toy look
     float fill = max(dot(n, normalize(vec3(-0.3, -0.7, 0.4))), 0.0) * 0.18;
     vec3 h = normalize(lightDir + v);
     float spec = pow(max(dot(n, h), 0.0), 60.0);
@@ -46,37 +47,59 @@ const skullFrag = /* glsl */ `
 
 export type Expression = 'alert' | 'focused' | 'playful' | 'neutral'
 
-/** Target lid closure + pupil scale per expression. */
-const EXPRESSIONS: Record<Expression, { lid: number; pupil: number }> = {
-  alert: { lid: 0.02, pupil: 1.25 }, // chasing — eyes wide, pupils blown
-  focused: { lid: 0.3, pupil: 0.85 }, // resting, watching — relaxed, narrowed
-  playful: { lid: 0.45, pupil: 1.05 }, // idle play — happy squint
-  neutral: { lid: 0.12, pupil: 1.0 }, // wandering
+/**
+ * Acting targets per expression: lid closure, pupil scale, brow angle
+ * (radians; positive = inner edge raised → soft/curious, negative =
+ * inner edge dropped → determined/predator), brow height offset.
+ */
+const EXPRESSIONS: Record<
+  Expression,
+  {
+    lid: number
+    pupil: number
+    aspect: number // pupil shape: slit when calm, rounds out when excited
+    brow: number
+    browLift: number
+    blinkMin: number // seconds between blinks — alert blinks often,
+    blinkMax: number // a locked-on predator barely blinks
+  }
+> = {
+  alert: { lid: 0.04, pupil: 1.3, aspect: 0.95, brow: -0.32, browLift: -0.02, blinkMin: 1.6, blinkMax: 3.2 },
+  focused: { lid: 0.32, pupil: 0.82, aspect: 0.55, brow: -0.12, browLift: 0.0, blinkMin: 4.0, blinkMax: 7.0 },
+  playful: { lid: 0.5, pupil: 1.1, aspect: 0.8, brow: 0.28, browLift: 0.05, blinkMin: 2.0, blinkMax: 4.5 },
+  neutral: { lid: 0.14, pupil: 1.0, aspect: 0.65, brow: 0.06, browLift: 0.02, blinkMin: 2.5, blinkMax: 6.0 },
 }
 
 /**
- * The serpent's face. Eyes never stop caring about the cursor — eyeballs
- * rotate to the raw pointer every frame. Personality lives in the lids:
- * expression states, random blinks, a happy squint when it eats, pupils
- * that dilate when the prey (cursor) moves fast.
+ * The serpent's face, film-rig edition:
+ * - painted-shader eyes (gaze/iris/pupil/lids composited in eye space —
+ *   nothing can clip or drift)
+ * - saccadic gaze with micro-fixations; pupils dilate for fast prey
+ * - asymmetric blinks (fast down, slow up), blink-on-big-gaze-shift
+ * - brow ridges that act: determined V when hunting, raised when playing
+ * - iris color follows the section mood
  */
 export class SerpentHead {
   group = new Group()
-  private eyeL = new Group()
-  private eyeR = new Group()
-  private lids: Mesh[] = []
-  private pupils: Mesh[] = []
+  private eyeL: SerpentEye
+  private eyeR: SerpentEye
+  private browL: Mesh
+  private browR: Mesh
   private tongue = new Group()
   private lookTarget = new Vector3()
+  private localTarget = new Vector3()
+  private eyeDirL = new Vector3()
+  private eyeDirR = new Vector3()
   private dir = new Vector3()
 
-  // expression machinery
   private expression: Expression = 'neutral'
-  private lid = 0.12 // current closure 0 open → 1 shut
-  private pupil = 1
-  private blinkAt = 2.5 // next blink time
-  private blinkPhase = -1 // <0 idle, 0..1 mid-blink
-  private squintPulse = 0 // eat reaction decay
+  private lid = 0.14
+  private brow = 0.06
+  private browLift = 0.02
+  private blinkAt = 2.5
+  private blinkPhase = -1
+  private squintPulse = 0
+  private lastGazeL = new Vector3(0, 0, 1)
 
   constructor() {
     const skull = new Mesh(
@@ -86,37 +109,22 @@ export class SerpentHead {
     skull.scale.set(0.95, 0.78, 1.42)
     this.group.add(skull)
 
-    const scleraGeo = new SphereGeometry(0.22, 18, 14)
-    const scleraMat = new MeshBasicMaterial({ color: 0xffffff })
-    const pupilGeo = new SphereGeometry(0.115, 14, 10)
-    const pupilMat = new MeshBasicMaterial({ color: 0x04060d })
-    const glintGeo = new SphereGeometry(0.035, 8, 6)
-    const glintMat = new MeshBasicMaterial({ color: 0xffffff })
-    // eyelid: dome shell over the eye, rotates down over the front
-    const lidGeo = new SphereGeometry(0.245, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.55)
-    const lidMat = new MeshBasicMaterial({ color: 0x2a1052 })
+    // eyes — bigger and higher: cartoon-snake appeal lives in eye scale
+    this.eyeL = new SerpentEye(0.26)
+    this.eyeR = new SerpentEye(0.26)
+    this.eyeL.mesh.position.set(-0.28, 0.38, 0.4)
+    this.eyeR.mesh.position.set(0.28, 0.38, 0.4)
+    this.group.add(this.eyeL.mesh, this.eyeR.mesh)
 
-    for (const [eye, x] of [
-      [this.eyeL, -0.27],
-      [this.eyeR, 0.27],
-    ] as const) {
-      const sclera = new Mesh(scleraGeo, scleraMat)
-      const pupil = new Mesh(pupilGeo, pupilMat)
-      pupil.position.z = 0.15
-      const glint = new Mesh(glintGeo, glintMat)
-      glint.position.set(0.05, 0.06, 0.21)
-      eye.add(sclera, pupil, glint)
-      eye.position.set(x, 0.34, 0.42)
-      this.group.add(eye)
-      this.pupils.push(pupil)
-
-      // lid is parented to the HEAD (not the eyeball) so the eye can look
-      // around underneath a half-closed lid
-      const lid = new Mesh(lidGeo, lidMat)
-      lid.position.copy(eye.position)
-      this.group.add(lid)
-      this.lids.push(lid)
-    }
+    // brow ridges — soft boxes riding above the eyes; the cheapest, most
+    // legible emotion channel a face has
+    const browGeo = new BoxGeometry(0.3, 0.075, 0.14)
+    const browMat = new MeshBasicMaterial({ color: 0x1d0a3c })
+    this.browL = new Mesh(browGeo, browMat)
+    this.browR = new Mesh(browGeo, browMat)
+    this.browL.position.set(-0.28, 0.66, 0.42)
+    this.browR.position.set(0.28, 0.66, 0.42)
+    this.group.add(this.browL, this.browR)
 
     const tongueMat = new MeshBasicMaterial({ color: 0xff3d8e })
     const stem = new Mesh(new BoxGeometry(0.05, 0.03, 0.5), tongueMat)
@@ -136,7 +144,6 @@ export class SerpentHead {
     this.expression = e
   }
 
-  /** Happy squint when an orb goes down. */
   reactEat() {
     this.squintPulse = 1
   }
@@ -148,53 +155,76 @@ export class SerpentHead {
     time: number,
     dt: number,
     pointerSpeed: number,
+    moodTint: Color,
   ) {
     this.group.position.copy(headPos)
     this.dir.copy(headPos).add(headDir)
     this.group.lookAt(this.dir)
+    this.group.updateMatrixWorld()
 
-    // ── gaze: raw pointer, zero lag, always interested ────────────────
+    // ── gaze target into head-local space, per eye (natural convergence) ──
     this.lookTarget.copy(pointerWorld)
-    this.lookTarget.z += 2
-    this.eyeL.lookAt(this.lookTarget)
-    this.eyeR.lookAt(this.lookTarget)
+    this.lookTarget.z += 1.6 // bias toward the viewer
+    this.localTarget.copy(this.lookTarget)
+    this.group.worldToLocal(this.localTarget)
+    this.eyeDirL.copy(this.localTarget).sub(this.eyeL.mesh.position).normalize()
+    this.eyeDirR.copy(this.localTarget).sub(this.eyeR.mesh.position).normalize()
 
-    // ── expression → lids + pupils ────────────────────────────────────
-    const targetSet = EXPRESSIONS[this.expression]
-    // fast prey dilates pupils on top of the expression baseline
-    const dilate = Math.min(pointerSpeed * 0.05, 0.3)
-    const k = Math.min(1, dt * 6)
-    this.lid += (targetSet.lid - this.lid) * k
-    this.pupil += (targetSet.pupil + dilate - this.pupil) * k
+    // blink-on-big-gaze-shift: animators' rule — large refixation hides
+    // the eye snap under a blink
+    if (this.eyeDirL.angleTo(this.lastGazeL) > 0.55 && this.blinkPhase < 0) {
+      this.blinkPhase = 0
+    }
+    this.lastGazeL.copy(this.eyeDirL)
 
-    // eat reaction: quick joyful squint, decays out
-    this.squintPulse = Math.max(0, this.squintPulse - dt * 2.4)
-    const squint = Math.sin(Math.min(this.squintPulse, 1) * Math.PI) * 0.5
+    // ── expression acting ─────────────────────────────────────────────
+    const t = EXPRESSIONS[this.expression]
+    const k = Math.min(1, dt * 5)
+    this.lid += (t.lid - this.lid) * k
+    this.brow += (t.brow - this.brow) * k
+    this.browLift += (t.browLift - this.browLift) * k
 
-    // blink scheduler
+    this.squintPulse = Math.max(0, this.squintPulse - dt * 2.2)
+    const squint = Math.sin(Math.min(this.squintPulse, 1) * Math.PI) * 0.45
+
+    // film blink: ~70ms slam down, ~70ms held shut, ~110ms ease up,
+    // occasional double blink (8%)
     let blink = 0
     if (this.blinkPhase >= 0) {
-      this.blinkPhase += dt / 0.22 // full blink ≈ 220ms
-      blink = Math.sin(Math.min(this.blinkPhase, 1) * Math.PI)
-      if (this.blinkPhase >= 1) {
+      this.blinkPhase += dt
+      const p = this.blinkPhase
+      if (p < 0.07) blink = p / 0.07
+      else if (p < 0.14) blink = 1
+      else if (p < 0.25) blink = 1 - (p - 0.14) / 0.11
+      else {
         this.blinkPhase = -1
-        this.blinkAt = time + 2 + Math.random() * 4
+        blink = 0
+        this.blinkAt =
+          Math.random() < 0.08
+            ? time + 0.3 // double blink
+            : time + t.blinkMin + Math.random() * (t.blinkMax - t.blinkMin)
       }
+      blink = blink * blink * (3 - 2 * blink) // smooth both ends
     } else if (time > this.blinkAt) {
       this.blinkPhase = 0
     }
 
     const closure = Math.min(1, this.lid + squint + blink)
-    for (const lid of this.lids) {
-      // rotate the dome down over the eye's front; resting tilt keeps the
-      // shell tucked behind the brow when fully open
-      lid.rotation.x = -Math.PI * 0.62 + closure * Math.PI * 0.55
-    }
-    for (const p of this.pupils) {
-      p.scale.setScalar(this.pupil)
-    }
+    const pupilTarget = t.pupil + Math.min(pointerSpeed * 0.05, 0.3)
+    // fast prey also rounds the slit out — excitement opens the aperture
+    const aspectTarget = Math.min(1, t.aspect + Math.min(pointerSpeed * 0.02, 0.25))
 
-    // ── tongue flick (skipped while mid-blink — snakes multitask poorly) ──
+    this.eyeL.update(time, dt, this.eyeDirL, pupilTarget, aspectTarget, closure, moodTint)
+    this.eyeR.update(time, dt, this.eyeDirR, pupilTarget, aspectTarget, closure, moodTint)
+
+    // brows: mirrored rotation (inner edge), lift, and they ride squints up
+    this.browL.rotation.z = -this.brow
+    this.browR.rotation.z = this.brow
+    const browY = 0.66 + this.browLift - closure * 0.07
+    this.browL.position.y = browY
+    this.browR.position.y = browY
+
+    // ── tongue flick ──────────────────────────────────────────────────
     const phase = time % 3.4
     const flick = Math.min(1, phase / 0.14) * (1 - Math.min(1, Math.max(0, (phase - 0.34) / 0.18)))
     const out = Math.max(0, flick) * (1 - blink)

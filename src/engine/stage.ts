@@ -24,9 +24,14 @@ export const camera = new PerspectiveCamera(42, 1, 0.1, 120)
 camera.position.set(0, 0, 14)
 scene.add(camera)
 
+let sizedW = 0
+let sizedH = 0
 function resize() {
   const w = window.innerWidth
   const h = window.innerHeight
+  if (!w || !h) return // zero-size viewport (pre-layout boot) → NaN aspect
+  sizedW = w
+  sizedH = h
   const dpr = Math.min(window.devicePixelRatio, quality.dprCap)
   renderer.setPixelRatio(dpr)
   renderer.setSize(w, h, false)
@@ -35,6 +40,18 @@ function resize() {
 }
 window.addEventListener('resize', resize)
 resize()
+
+/** Self-heal: some embedders change viewport without firing resize.
+ *  Re-dispatch so every subsystem (composer, nebula, orbs) follows. */
+function ensureSized() {
+  if (window.innerWidth !== sizedW || window.innerHeight !== sizedH) {
+    if (window.innerWidth && window.innerHeight) {
+      sizedW = window.innerWidth
+      sizedH = window.innerHeight
+      window.dispatchEvent(new Event('resize'))
+    }
+  }
+}
 
 /** Mouse in NDC (-1..1), smoothed by consumers as needed. */
 export const pointer = { x: 0, y: 0 }
@@ -53,7 +70,10 @@ let started = false
 export function startStage() {
   if (started) return
   started = true
-  onFrame(() => renderFn())
+  onFrame(() => {
+    ensureSized()
+    renderFn()
+  })
   if (quality.reducedMotion) {
     // single styled frame; no continuous animation
     renderFn()
