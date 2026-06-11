@@ -1,6 +1,6 @@
 import { CatmullRomCurve3, Vector3 } from 'three'
 
-const CTRL = 14 // control points fed to the curve (tail → head)
+const CTRL = 16 // control points fed to the curve (tail → head)
 const BODY_LENGTH = 13 // world units of serpent
 const TRAIL_CAP = 900
 const MIN_STEP = 0.045
@@ -22,6 +22,7 @@ export class Locomotion {
   private desired = new Vector3()
   private steer = new Vector3()
   private perp = new Vector3()
+  private travel = 0 // accumulated arc distance — undulation is per-meter, not per-second
 
   constructor() {
     for (let i = 0; i < CTRL; i++) this.pts.push(new Vector3())
@@ -69,15 +70,21 @@ export class Locomotion {
     const speedScale = Math.min(1, dist / 3.2)
     this.desired.normalize().multiplyScalar(maxSpeed * (0.25 + 0.75 * speedScale))
 
-    this.steer.copy(this.desired).sub(this.velocity).multiplyScalar(pointerActive ? 3.4 : 1.6)
+    // softer steering + drag — the head carries weight; it commits to turns
+    // instead of twitching after the cursor
+    this.steer.copy(this.desired).sub(this.velocity).multiplyScalar(pointerActive ? 2.3 : 1.4)
     this.velocity.addScaledVector(this.steer, clampedDt)
+    this.velocity.multiplyScalar(Math.max(0, 1 - 0.35 * clampedDt))
     if (this.velocity.length() > maxSpeed) this.velocity.normalize().multiplyScalar(maxSpeed)
 
-    // serpentine wiggle — lateral oscillation perpendicular to travel,
-    // stronger at speed (a snake can't swim straight)
+    // serpentine undulation — phased by distance traveled so the wave
+    // crawls along the ground path like a real snake, breathing slowly
+    // even at rest
     const speed = this.velocity.length()
+    this.travel += speed * clampedDt
     this.perp.set(-this.velocity.y, this.velocity.x, 0).normalize()
-    const wiggle = Math.sin(time * 6.2) * Math.min(speed * 0.34, 2.2)
+    const wiggle =
+      Math.sin(this.travel * 1.7 + time * 0.9) * Math.min(0.35 + speed * 0.3, 2.0)
 
     this.head.addScaledVector(this.velocity, clampedDt)
     this.head.addScaledVector(this.perp, wiggle * clampedDt)
