@@ -9,6 +9,7 @@ import { startStage } from './engine/stage'
 import { createNebula } from './fx/nebula'
 import { createSerpent } from './serpent'
 import { initBloom } from './fx/bloom'
+import { initMoods } from './fx/moods'
 import { runPreloader } from './ui/preloader'
 import { initNav } from './ui/nav'
 import { initProgress } from './ui/progress'
@@ -24,6 +25,7 @@ if (quality.reducedMotion) document.body.classList.add('motion-off')
 const year = document.getElementById('year')
 if (year) year.textContent = String(new Date().getFullYear())
 
+initMoods()
 createNebula()
 createSerpent()
 if (quality.bloom) initBloom()

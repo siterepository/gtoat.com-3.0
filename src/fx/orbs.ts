@@ -2,6 +2,7 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
+  Color,
   Points,
   ShaderMaterial,
   Vector3,
@@ -31,6 +32,7 @@ const frag = /* glsl */ `
   precision mediump float;
   varying float vSeed;
   varying float vScale;
+  uniform vec3 uTint;
   void main() {
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
@@ -40,6 +42,7 @@ const frag = /* glsl */ `
     vec3 b = vec3(0.00, 0.94, 1.00);
     vec3 c3 = vec3(1.00, 0.24, 0.56);
     vec3 col = vSeed < 0.33 ? a : (vSeed < 0.66 ? b : c3);
+    col = mix(col, uTint, 0.55); // section mood owns the field
     gl_FragColor = vec4(col * glow * 1.6 * vScale, glow * vScale);
   }
 `
@@ -78,7 +81,7 @@ export class Orbs {
     const mat = new ShaderMaterial({
       vertexShader: vert,
       fragmentShader: frag,
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uTint: { value: new Color(0xbfd4ff) } },
       transparent: true,
       blending: AdditiveBlending,
       depthWrite: false,
@@ -100,8 +103,10 @@ export class Orbs {
     this.bounds.h = view.h * 1.1
   }
 
-  update(time: number, headPos: Vector3) {
-    ;(this.points.material as ShaderMaterial).uniforms.uTime.value = time
+  update(time: number, headPos: Vector3, tint: Color) {
+    const u = (this.points.material as ShaderMaterial).uniforms
+    u.uTime.value = time
+    u.uTint.value.copy(tint)
 
     let dirty = false
     for (let i = 0; i < this.count; i++) {

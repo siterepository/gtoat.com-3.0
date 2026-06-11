@@ -8,7 +8,7 @@
   -webkit-backdrop-filter: blur(10px);
   position: relative;
   transition:
-    transform 0.5s var(--e-out),
+    transform 0.16s ease-out,
     border-color 0.4s var(--e-out),
     box-shadow 0.5s var(--e-out);
 }
@@ -16,8 +16,13 @@ a.card {
   color: var(--text);
   display: block;
 }
+.card,
+.dos {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    translateY(var(--lift, 0px));
+}
 .card:hover {
-  transform: translateY(-4px);
+  --lift: -4px;
   border-color: rgba(178, 77, 255, 0.45);
   box-shadow: var(--glow-purple);
 }
@@ -237,7 +242,7 @@ a.card {
   padding: 1.6rem 1.5rem 1.4rem;
   position: relative;
   overflow: hidden;
-  transition: transform 0.5s var(--e-out), border-color 0.4s, box-shadow 0.5s var(--e-out);
+  transition: transform 0.16s ease-out, border-color 0.4s, box-shadow 0.5s var(--e-out);
 }
 .dos::before {
   content: 'CLASSIFIED';
@@ -263,7 +268,7 @@ a.card {
   pointer-events: none;
 }
 .dos:hover {
-  transform: translateY(-6px);
+  --lift: -6px;
   border-color: rgba(245, 158, 11, 0.45);
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), var(--glow-purple);
 }
@@ -434,6 +439,21 @@ a.card {
   display: grid;
   gap: 0.8rem;
   max-width: 720px;
+}
+.media-sub {
+  margin-top: 2.6rem;
+}
+.media-sub-h {
+  font-family: var(--f-head);
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+}
+.media-sub-h .sec-tag {
+  margin: 0;
 }
 .ml {
   display: flex;

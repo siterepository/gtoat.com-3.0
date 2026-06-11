@@ -31,13 +31,22 @@ function initIntel() {
   })
 }
 
-/** Dossier cards — pointer-following glow via CSS vars. */
-function initDossierGlow() {
-  document.querySelectorAll<HTMLElement>('.dos').forEach((card) => {
+/** Cards live in 3D — pointer glow + perspective tilt via CSS vars. */
+function initCardDepth() {
+  const MAX_TILT = 6 // degrees
+  document.querySelectorAll<HTMLElement>('.dos, .card').forEach((card) => {
     card.addEventListener('pointermove', (e) => {
       const r = card.getBoundingClientRect()
-      card.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`)
-      card.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`)
+      const fx = (e.clientX - r.left) / r.width
+      const fy = (e.clientY - r.top) / r.height
+      card.style.setProperty('--mx', `${fx * 100}%`)
+      card.style.setProperty('--my', `${fy * 100}%`)
+      card.style.setProperty('--ry', `${(fx - 0.5) * 2 * MAX_TILT}deg`)
+      card.style.setProperty('--rx', `${(0.5 - fy) * 2 * MAX_TILT}deg`)
+    })
+    card.addEventListener('pointerleave', () => {
+      card.style.setProperty('--rx', '0deg')
+      card.style.setProperty('--ry', '0deg')
     })
   })
 }
@@ -74,7 +83,7 @@ function initFeedCounter() {
 
 export function initInteractions() {
   initIntel()
-  initDossierGlow()
+  initCardDepth()
   initClownEyes()
   initFeedCounter()
 }

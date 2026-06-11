@@ -1,5 +1,6 @@
 import {
   BufferGeometry,
+  Color,
   Float32BufferAttribute,
   Mesh,
   ShaderMaterial,
@@ -7,6 +8,7 @@ import {
 } from 'three'
 import { scene } from '../engine/stage'
 import { onFrame, scrollProgress } from '../engine/ticker'
+import { mood } from './moods'
 
 const vert = /* glsl */ `
   varying vec2 vUv;
@@ -22,6 +24,8 @@ const frag = /* glsl */ `
   uniform float uTime;
   uniform float uScroll;
   uniform vec2 uRes;
+  uniform vec3 uTintA;
+  uniform vec3 uTintB;
 
   // simplex-ish value noise + fbm — cheap, fullscreen-safe
   float hash(vec2 p) {
@@ -61,16 +65,12 @@ const frag = /* glsl */ `
     float neb = smoothstep(0.42, 0.95, n1 * 0.65 + n2 * 0.45);
 
     vec3 void_ = vec3(0.016, 0.024, 0.051);
-    vec3 purple = vec3(0.42, 0.18, 0.72);
-    vec3 cyan = vec3(0.0, 0.55, 0.66);
-    vec3 pink = vec3(0.72, 0.16, 0.42);
 
-    // hue shifts as the dossier deepens
-    vec3 tint = mix(purple, cyan, smoothstep(0.15, 0.55, uScroll));
-    tint = mix(tint, pink, smoothstep(0.65, 1.0, uScroll));
+    // each section is a different room — mood system drives the tints
+    vec3 tint = mix(uTintA, uTintB, smoothstep(0.3, 0.8, n2));
 
-    vec3 col = void_ + tint * neb * 0.19;
-    col += cyan * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.28; // starfield sparkle
+    vec3 col = void_ + tint * neb * 0.22;
+    col += uTintB * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.3; // starfield sparkle
 
     // vignette
     float vig = smoothstep(1.25, 0.35, length(p));
@@ -96,6 +96,8 @@ export function createNebula() {
       uTime: { value: 0 },
       uScroll: { value: 0 },
       uRes: { value: new Vector2(innerWidth, innerHeight) },
+      uTintA: { value: new Color(0x6b2eb8) },
+      uTintB: { value: new Color(0x008ca8) },
     },
     depthWrite: false,
     depthTest: false,
@@ -115,6 +117,8 @@ export function createNebula() {
     mat.uniforms.uTime.value = time
     smoothScroll += (scrollProgress() - smoothScroll) * Math.min(1, dt * 4)
     mat.uniforms.uScroll.value = smoothScroll
+    mat.uniforms.uTintA.value.copy(mood.current.nebA)
+    mat.uniforms.uTintB.value.copy(mood.current.nebB)
   })
 
   return mesh
