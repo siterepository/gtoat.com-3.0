@@ -7,6 +7,8 @@ import './styles/sections.css'
 import { quality } from './engine/quality'
 import { startStage } from './engine/stage'
 import { createNebula } from './fx/nebula'
+import { createSerpent } from './serpent'
+import { initBloom } from './fx/bloom'
 import { runPreloader } from './ui/preloader'
 import { initNav } from './ui/nav'
 import { initProgress } from './ui/progress'
@@ -19,6 +21,8 @@ const year = document.getElementById('year')
 if (year) year.textContent = String(new Date().getFullYear())
 
 createNebula()
+createSerpent()
+if (quality.bloom) initBloom()
 startStage()
 initNav()
 initProgress()
