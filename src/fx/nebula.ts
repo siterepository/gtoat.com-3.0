@@ -26,6 +26,8 @@ const frag = /* glsl */ `
   uniform vec2 uRes;
   uniform vec3 uTintA;
   uniform vec3 uTintB;
+  uniform sampler2D uInk;
+  uniform float uInkOn;
 
   // simplex-ish value noise + fbm — cheap, fullscreen-safe
   float hash(vec2 p) {
@@ -72,6 +74,9 @@ const frag = /* glsl */ `
     vec3 col = void_ + tint * neb * 0.22;
     col += uTintB * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.3; // starfield sparkle
 
+    // ink field — bioluminescent dye trailing the pointer and the serpent
+    col += texture2D(uInk, vUv).rgb * 0.5 * uInkOn;
+
     // vignette
     float vig = smoothstep(1.25, 0.35, length(p));
     col *= mix(0.55, 1.0, vig);
@@ -82,6 +87,16 @@ const frag = /* glsl */ `
     gl_FragColor = vec4(col, 1.0);
   }
 `
+
+let inkHook: ((tex: import('three').Texture) => void) | null = null
+
+/** Late-bind the ink dye texture once the serpent (its emitter) exists. */
+export function attachInk(getTexture: () => import('three').Texture) {
+  inkHook?.(getTexture())
+  // keep texture fresh across ping-pong swaps
+  inkSource = getTexture
+}
+let inkSource: (() => import('three').Texture) | null = null
 
 export function createNebula() {
   // fullscreen triangle (cheaper than quad, no camera dependency)
@@ -98,6 +113,8 @@ export function createNebula() {
       uRes: { value: new Vector2(innerWidth, innerHeight) },
       uTintA: { value: new Color(0x6b2eb8) },
       uTintB: { value: new Color(0x008ca8) },
+      uInk: { value: null },
+      uInkOn: { value: 0 },
     },
     depthWrite: false,
     depthTest: false,
@@ -112,6 +129,11 @@ export function createNebula() {
     mat.uniforms.uRes.value.set(innerWidth, innerHeight)
   })
 
+  inkHook = (tex) => {
+    mat.uniforms.uInk.value = tex
+    mat.uniforms.uInkOn.value = 1
+  }
+
   let smoothScroll = 0
   onFrame((time, dt) => {
     mat.uniforms.uTime.value = time
@@ -119,6 +141,7 @@ export function createNebula() {
     mat.uniforms.uScroll.value = smoothScroll
     mat.uniforms.uTintA.value.copy(mood.current.nebA)
     mat.uniforms.uTintB.value.copy(mood.current.nebB)
+    if (inkSource) mat.uniforms.uInk.value = inkSource()
   })
 
   return mesh

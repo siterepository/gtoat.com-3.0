@@ -8,6 +8,9 @@ import { SerpentHead } from './head'
 import { Orbs } from '../fx/orbs'
 import { Burst } from '../fx/burst'
 import { mood } from '../fx/moods'
+import { warp } from '../fx/warp'
+import { createInk } from '../fx/ink'
+import { attachInk } from '../fx/nebula'
 import { pickPoi } from '../sections/poi'
 import { reactToExamine } from '../sections/examine'
 import type { Poi } from '../sections/poi'
@@ -68,6 +71,11 @@ export function createSerpent() {
   document.documentElement.addEventListener('mouseleave', () => {
     pointerEngaged = false
   })
+
+  // bioluminescent ink — the serpent and the pointer both leave dye
+  const inkHeadPos = new Vector3()
+  const ink = createInk(() => locomotion.headPosition(inkHeadPos))
+  if (ink) attachInk(() => ink.texture)
 
   let eaten = 0
   orbs.onEat = () => {
@@ -158,7 +166,7 @@ export function createSerpent() {
 
     head.setExpression(EXPRESSION_BY_STATE[locomotion.state])
     head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed, mood.current.tint)
-    orbs.update(time, headPos, mood.current.orb)
+    orbs.update(time, headPos, mood.current.orb, warp.value)
 
     // camera rig — pointer parallax, breathing drift, mood depth,
     // hero dolly-in, and a lean toward whatever the serpent is examining

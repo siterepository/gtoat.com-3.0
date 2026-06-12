@@ -15,6 +15,7 @@ const vert = /* glsl */ `
   varying float vSeed;
   varying float vScale;
   uniform float uTime;
+  uniform float uWarp;
   void main() {
     vSeed = aSeed;
     vScale = aScale;
@@ -23,7 +24,8 @@ const vert = /* glsl */ `
     p.y += cos(uTime * 0.4 + aSeed * 31.0) * 0.5;
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     float tw = 0.75 + 0.25 * sin(uTime * (1.5 + aSeed) + aSeed * 40.0);
-    gl_PointSize = (26.0 * aScale * tw) / -mv.z;
+    // warp swells the points so the fragment streaks have room to draw
+    gl_PointSize = (26.0 * aScale * tw * (1.0 + uWarp * (1.2 + aSeed))) / -mv.z;
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -33,8 +35,12 @@ const frag = /* glsl */ `
   varying float vSeed;
   varying float vScale;
   uniform vec3 uTint;
+  uniform float uWarp;
   void main() {
     vec2 c = gl_PointCoord - 0.5;
+    // anamorphic streak: compress sampling along travel axis → light-line
+    c.y /= 1.0 + uWarp * (4.0 + vSeed * 3.0);
+    c.x *= 1.0 + uWarp * 0.6;
     float d = length(c);
     float glow = smoothstep(0.5, 0.0, d);
     glow = pow(glow, 2.2);
@@ -81,7 +87,11 @@ export class Orbs {
     const mat = new ShaderMaterial({
       vertexShader: vert,
       fragmentShader: frag,
-      uniforms: { uTime: { value: 0 }, uTint: { value: new Color(0xbfd4ff) } },
+      uniforms: {
+        uTime: { value: 0 },
+        uTint: { value: new Color(0xbfd4ff) },
+        uWarp: { value: 0 },
+      },
       transparent: true,
       blending: AdditiveBlending,
       depthWrite: false,
@@ -103,10 +113,11 @@ export class Orbs {
     this.bounds.h = view.h * 1.1
   }
 
-  update(time: number, headPos: Vector3, tint: Color) {
+  update(time: number, headPos: Vector3, tint: Color, warpAmount: number) {
     const u = (this.points.material as ShaderMaterial).uniforms
     u.uTime.value = time
     u.uTint.value.copy(tint)
+    u.uWarp.value = warpAmount
 
     let dirty = false
     for (let i = 0; i < this.count; i++) {
