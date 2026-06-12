@@ -36,7 +36,8 @@
   --e-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* fx */
-  --grad-neon: linear-gradient(100deg, var(--np), var(--nc) 55%, var(--nk));
+  /* bright stops — headings must carry over a dark animated background */
+  --grad-neon: linear-gradient(100deg, #c77dff, #5ff5ff 55%, #ff7ab8);
   --glow-purple: 0 0 24px rgba(168, 85, 247, 0.35);
   --glow-cyan: 0 0 24px rgba(34, 211, 238, 0.3);
 }

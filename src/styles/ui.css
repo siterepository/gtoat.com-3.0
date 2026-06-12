@@ -113,7 +113,7 @@
   text-transform: uppercase;
 }
 .nav-links a {
-  color: var(--dim);
+  color: #c3cde0;
   position: relative;
 }
 .nav-links a::after {
