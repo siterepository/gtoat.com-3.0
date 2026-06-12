@@ -67,6 +67,7 @@ export const mood = {
 function setTarget(name: string) {
   const d = MOODS[name]
   if (!d) return
+  document.dispatchEvent(new CustomEvent('gtoat:scene', { detail: name }))
   target.nebA.setHex(d.nebA)
   target.nebB.setHex(d.nebB)
   target.orb.setHex(d.orb)

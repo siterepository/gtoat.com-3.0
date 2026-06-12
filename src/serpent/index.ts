@@ -1,6 +1,6 @@
 import { Vector3 } from 'three'
 import { camera, pointer, renderer, scene } from '../engine/stage'
-import { onFrame } from '../engine/ticker'
+import { gsap, onFrame } from '../engine/ticker'
 import { quality } from '../engine/quality'
 import { Locomotion } from './locomotion'
 import { SerpentBody } from './body'
@@ -87,6 +87,19 @@ export function createSerpent() {
   const prevGaze = new Vector3()
   const burst = new Burst()
 
+  // cinematic hero entrance: camera starts deep, dollies in as the
+  // preloader clears — the serpent swims up into the reveal
+  let baseZ = mood.current.camZ
+  let examineLean = 0
+  const intro = { offset: quality.reducedMotion ? 0 : 9 }
+  document.addEventListener(
+    'gtoat:ready',
+    () => {
+      gsap.to(intro, { offset: 0, duration: 3.2, ease: 'power3.out' })
+    },
+    { once: true },
+  )
+
   // ── curiosity wiring: the serpent picks real page elements to examine ──
   let currentPoi: Poi | null = null
   locomotion.onSeekPoi = () => {
@@ -100,6 +113,7 @@ export function createSerpent() {
   locomotion.onExamineStart = (point) => {
     head.setScanPoint(point)
     burst.fire(point, mood.current.tint)
+    document.dispatchEvent(new CustomEvent('gtoat:examine'))
     if (currentPoi) reactToExamine(currentPoi)
     // examining ends when the state machine moves on
     setTimeout(() => head.setScanPoint(null), 3300)
@@ -146,10 +160,13 @@ export function createSerpent() {
     head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed, mood.current.tint)
     orbs.update(time, headPos, mood.current.orb)
 
-    // camera rig — pointer parallax, breathing drift, mood depth
+    // camera rig — pointer parallax, breathing drift, mood depth,
+    // hero dolly-in, and a lean toward whatever the serpent is examining
+    baseZ += (mood.current.camZ - baseZ) * Math.min(1, dt * 1.6)
+    examineLean += ((locomotion.examining ? -1.5 : 0) - examineLean) * Math.min(1, dt * 1.4)
     camera.position.x = smooth.px * 0.55 + Math.sin(time * 0.12) * 0.12
     camera.position.y = smooth.py * 0.4 + Math.cos(time * 0.1) * 0.1
-    camera.position.z += (mood.current.camZ - camera.position.z) * Math.min(1, dt * 1.6)
+    camera.position.z = baseZ + intro.offset + examineLean
     camera.lookAt(0, 0, 0)
   })
 }
