@@ -173,6 +173,99 @@
   transform: translateY(-4px) rotate(-45deg);
 }
 
+/* ── predator cursor ── */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button,
+html.has-cursor input,
+html.has-cursor textarea {
+  cursor: none;
+}
+#cursor {
+  position: fixed;
+  left: var(--cx, -100px);
+  top: var(--cy, -100px);
+  z-index: 10010;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s var(--e-out);
+}
+#cursor.is-on {
+  opacity: 1;
+}
+.cur-core {
+  position: absolute;
+  translate: -50% -50%;
+  width: 3px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--nc);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
+  transition: height 0.2s var(--e-snap), width 0.2s var(--e-snap), background 0.2s;
+}
+.cur-ring {
+  position: absolute;
+  translate: 0 0;
+}
+.cur-ring::before {
+  content: '';
+  position: absolute;
+  translate: -50% -50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 240, 255, 0.55);
+  transition: width 0.25s var(--e-snap), height 0.25s var(--e-snap), border-color 0.25s,
+    border-radius 0.25s;
+}
+#cursor.is-hover .cur-ring::before {
+  width: 52px;
+  height: 52px;
+  border-color: rgba(255, 61, 142, 0.8);
+}
+#cursor.is-hover .cur-core {
+  height: 7px;
+  width: 7px;
+  border-radius: 50%;
+  background: var(--nk);
+}
+#cursor.is-down .cur-ring::before {
+  width: 26px;
+  height: 26px;
+}
+.cur-label {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  translate: -50%;
+  font-family: var(--f-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.3em;
+  color: var(--nk);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#cursor.has-label .cur-label {
+  opacity: 1;
+}
+
+/* ── sound toggle ── */
+.snd {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--nc);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  transition: color 0.25s, border-color 0.25s, opacity 0.25s;
+}
+.snd.is-off {
+  color: var(--dim);
+  border-color: var(--glass-b);
+  opacity: 0.7;
+}
+
 /* ── dot nav ── */
 .dots {
   position: fixed;

@@ -65,6 +65,11 @@
 
   <!-- ═══ CHROME ═══ -->
   <div id="prog" role="presentation"></div>
+  <div id="cursor" aria-hidden="true">
+    <div class="cur-ring"></div>
+    <div class="cur-core"></div>
+    <span class="cur-label"></span>
+  </div>
 
   <header class="nav" id="nav">
     <div class="nav-in">
@@ -77,7 +82,8 @@
         <a href="#updates">Intel</a>
         <a href="#lore">Lore</a>
         <a href="#media">Media</a>
-        <a href="#contact" class="nav-cta">Enlist</a>
+        <a href="#contact" class="nav-cta" data-cursor="ENLIST">Enlist</a>
+        <button id="sndBtn" class="snd mono" type="button" aria-pressed="false" aria-label="Toggle sound">SND ON</button>
       </nav>
       <button class="nav-ham" id="navHam" aria-label="Menu" aria-expanded="false">
         <span></span><span></span>
@@ -101,7 +107,7 @@
 
         <div class="hero-cta rv">
           <p class="play-label mono"><span class="arr arr-l">▶</span> CLICK TO PLAY <span class="arr arr-r">▶</span></p>
-          <button class="btn-play" id="playBtn" type="button" aria-label="Play GRINCH.io">
+          <button class="btn-play" id="playBtn" type="button" aria-label="Play GRINCH.io" data-cursor="PLAY">
             <span class="clown" aria-hidden="true">
               <span class="clown-face">🤡</span>
               <span class="eye eye-l"><span class="pupil"></span></span>
@@ -465,7 +471,7 @@
           <input id="cf-discord" name="discordUsername" type="text" placeholder="username#0000" required autocomplete="off" spellcheck="false" />
           <label for="cf-message" class="mono">MESSAGE</label>
           <textarea id="cf-message" name="message" rows="5" placeholder="Tell us why you're ready…" required></textarea>
-          <button class="btn-send" id="cfSend" type="submit">SEND MESSAGE</button>
+          <button class="btn-send" id="cfSend" type="submit" data-cursor="TRANSMIT">SEND MESSAGE</button>
           <p class="fst mono" id="cfStatus" role="status" aria-live="polite"></p>
         </form>
       </div>

@@ -19,6 +19,9 @@ import { initFlow } from './sections/flow'
 import { initInteractions } from './sections/interactions'
 import { initGame } from './data/game'
 import { initContact } from './data/contact'
+import { initAudio } from './fx/audio'
+import { initCursor } from './ui/cursor'
+import { initWatchdog } from './engine/watchdog'
 
 document.body.dataset.quality = quality.tier
 if (quality.reducedMotion) document.body.classList.add('motion-off')
@@ -39,6 +42,9 @@ initFlow()
 initInteractions()
 initGame()
 initContact()
+initAudio()
+initCursor()
+initWatchdog()
 
 runPreloader().then(() => {
   document.dispatchEvent(new CustomEvent('gtoat:ready'))

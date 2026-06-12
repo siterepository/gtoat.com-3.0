@@ -185,8 +185,10 @@ export class SerpentBody {
 
     for (let i = 0; i <= this.segments; i++) {
       const t = i / this.segments
-      curve.getPointAt(t, this.p)
-      curve.getTangentAt(t, this.tangent)
+      // parameter space — control points are arc-evenly spaced upstream,
+      // so this skips the per-frame arc-length table entirely
+      curve.getPoint(t, this.p)
+      curve.getTangent(t, this.tangent)
 
       // parallel-transport-ish frame: keep normal stable vs previous tangent
       if (i === 0) {

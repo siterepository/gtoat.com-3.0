@@ -46,6 +46,11 @@ export class Locomotion {
   onExamineStart?: (point: Vector3) => void
   private examined = false
 
+  /** true while leaning over a specimen — camera leans in with it */
+  get examining(): boolean {
+    return this.state === 'curious' && this.examined
+  }
+
   private lastTarget = new Vector3()
   private stillTime = 99
 
@@ -281,7 +286,9 @@ export class Locomotion {
       ci--
     }
 
-    this.curve.updateArcLengths()
+    // NOTE: no updateArcLengths() — control points are already arc-evenly
+    // resampled, so the body samples the curve in parameter space (getPoint)
+    // and skips the O(n) arc table rebuild every frame.
   }
 
   headPosition(out: Vector3): Vector3 {

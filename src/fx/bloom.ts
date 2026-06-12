@@ -2,6 +2,14 @@ import { HalfFloatType } from 'three'
 import { BloomEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing'
 import { camera, renderer, scene, setRenderFn } from '../engine/stage'
 
+let teardown: (() => void) | null = null
+
+/** Watchdog escape hatch — drop bloom when the frame budget is blown. */
+export function disableBloom() {
+  teardown?.()
+  teardown = null
+}
+
 /** One post effect, tuned hard. Bloom only — stacked effects read as mud. */
 export function initBloom() {
   const composer = new EffectComposer(renderer, { frameBufferType: HalfFloatType })
@@ -23,4 +31,10 @@ export function initBloom() {
   resize()
 
   setRenderFn(() => composer.render())
+
+  teardown = () => {
+    window.removeEventListener('resize', resize)
+    setRenderFn(() => renderer.render(scene, camera))
+    composer.dispose()
+  }
 }
