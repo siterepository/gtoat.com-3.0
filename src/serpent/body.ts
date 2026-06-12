@@ -29,6 +29,7 @@ const frag = /* glsl */ `
   varying vec3 vViewDir;
   uniform float uTime;
   uniform float uHue;
+  uniform float uFlow; // accumulated scroll current — pushes the glow bands
   uniform vec3 uMoodTint;
   uniform float uMoodAmt;
 
@@ -68,8 +69,9 @@ const frag = /* glsl */ `
     vec3 h = normalize(lightDir + v);
     float spec = pow(max(dot(n, h), 0.0), 56.0) * (0.35 + 0.65 * scale);
 
-    // slither.io glow bands flowing toward the head
-    float band = fract(vUv.x * 26.0 - uTime * 1.35);
+    // slither.io glow bands flowing toward the head; the page's scroll
+    // current pushes them faster (and backwards when scrolling up)
+    float band = fract(vUv.x * 26.0 - uTime * 1.35 - uFlow);
     float stripe = smoothstep(0.42, 0.5, band) * smoothstep(0.66, 0.58, band);
 
     // fresnel rim
@@ -159,6 +161,7 @@ export class SerpentBody {
       uniforms: {
         uTime: { value: 0 },
         uHue: { value: 0 },
+        uFlow: { value: 0 },
         uMoodTint: { value: new Color(1, 1, 1) },
         uMoodAmt: { value: 0 },
       },
@@ -177,9 +180,17 @@ export class SerpentBody {
     return 0.45 * grow * neck
   }
 
-  update(curve: CatmullRomCurve3, time: number, hue: number, tint: Color, tintAmt: number) {
+  update(
+    curve: CatmullRomCurve3,
+    time: number,
+    hue: number,
+    tint: Color,
+    tintAmt: number,
+    flow: number,
+  ) {
     this.material.uniforms.uMoodTint.value.copy(tint)
     this.material.uniforms.uMoodAmt.value = tintAmt
+    this.material.uniforms.uFlow.value = flow
     const pos = this.posAttr.array as Float32Array
     const nrm = this.nrmAttr.array as Float32Array
 

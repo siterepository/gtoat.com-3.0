@@ -12,6 +12,7 @@ const state = {
   current: 0,
   velocity: 0,
   boost: 0,
+  signed: 0, // smoothed directional scroll (-1 up … +1 down)
 }
 
 const BASE_FOV = 42
@@ -20,6 +21,10 @@ const MAX_FOV_KICK = 13
 export const warp = {
   get value() {
     return state.current
+  },
+  /** Directional component: -1 scrolling up … +1 scrolling down. */
+  get flow() {
+    return state.signed
   },
   /** Full warp for `duration`s — used by ATLAS travel. */
   dive(duration: number) {
@@ -46,6 +51,9 @@ export function initWarp() {
     const target = Math.max(fromScroll * 0.7, state.boost)
     const k = Math.min(1, dt * (target > state.current ? 9 : 3.5))
     state.current += (target - state.current) * k
+
+    const signedTarget = Math.max(-1, Math.min(1, state.velocity / 95))
+    state.signed += (signedTarget - state.signed) * Math.min(1, dt * 6)
     state.velocity *= 0.92 // decays if lenis stops emitting
 
     const fov = BASE_FOV + state.current * MAX_FOV_KICK

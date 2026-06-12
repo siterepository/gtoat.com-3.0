@@ -95,6 +95,7 @@ export function createSerpent() {
   // preloader clears — the serpent swims up into the reveal
   let baseZ = mood.current.camZ
   let examineLean = 0
+  let flowPhase = 0 // integral of scroll current — serpent band drift
   const intro = { offset: quality.reducedMotion ? 0 : 9 }
   document.addEventListener(
     'gtoat:ready',
@@ -152,7 +153,17 @@ export function createSerpent() {
     if (!quality.reducedMotion) {
       locomotion.update(time, dt, chaseWorld, pointerEngaged, mood.current.anchor, view)
     }
-    body.update(locomotion.curve, time, mood.current.serpentHue, mood.current.tint, mood.current.tintAmt)
+
+    // scroll current — accumulated flow pushes the serpent's glow bands
+    flowPhase += warp.flow * dt * 5.5
+    body.update(
+      locomotion.curve,
+      time,
+      mood.current.serpentHue,
+      mood.current.tint,
+      mood.current.tintAmt,
+      flowPhase,
+    )
     locomotion.headPosition(headPos)
     locomotion.headDirection(headDir)
 
@@ -162,7 +173,7 @@ export function createSerpent() {
 
     head.setExpression(EXPRESSION_BY_STATE[locomotion.state])
     head.update(headPos, headDir, gazeWorld, time, dt, pointerSpeed, mood.current.tint)
-    orbs.update(time, headPos, mood.current.orb, warp.value)
+    orbs.update(time, headPos, mood.current.orb, warp.value, warp.flow)
 
     // camera rig — pointer parallax, breathing drift, mood depth,
     // hero dolly-in, and a lean toward whatever the serpent is examining
@@ -172,5 +183,9 @@ export function createSerpent() {
     camera.position.y = smooth.py * 0.4 + Math.cos(time * 0.1) * 0.1
     camera.position.z = baseZ + intro.offset + examineLean
     camera.lookAt(0, 0, 0)
+    // lean rig — the camera pitches into the scroll and banks slightly,
+    // like a diver tilting into the current; returns level at rest
+    camera.rotateX(warp.flow * -0.05)
+    camera.rotateZ(warp.flow * 0.014)
   })
 }

@@ -101,7 +101,6 @@ export class SerpentHead {
   private blinkPhase = -1
   private squintPulse = 0
   private lastGazeL = new Vector3(0, 0, 1)
-  private crown = new Group()
 
   // examine mode: gaze scans across a specimen instead of the cursor
   private scanPoint: Vector3 | null = null
@@ -132,27 +131,6 @@ export class SerpentHead {
     this.browL.position.set(-0.28, 0.66, 0.42)
     this.browR.position.set(0.28, 0.66, 0.42)
     this.group.add(this.browL, this.browR)
-
-    // the crown — GTOAT is royalty; it bobs, slips when hunting,
-    // sits proud while playing
-    const gold = new MeshBasicMaterial({ color: 0xf5b50b })
-    const band = new Mesh(new BoxGeometry(0.42, 0.07, 0.34), gold)
-    this.crown.add(band)
-    for (let i = -1; i <= 1; i++) {
-      const spike = new Mesh(new BoxGeometry(0.09, 0.16, 0.3), gold)
-      spike.position.set(i * 0.15, 0.1, 0)
-      spike.scale.y = i === 0 ? 1.3 : 1
-      this.crown.add(spike)
-    }
-    const jewel = new Mesh(
-      new SphereGeometry(0.045, 10, 8),
-      new MeshBasicMaterial({ color: 0xff3d8e }),
-    )
-    jewel.position.set(0, 0.05, 0.18)
-    this.crown.add(jewel)
-    this.crown.position.set(0, 0.74, 0.05)
-    this.crown.rotation.x = -0.12
-    this.group.add(this.crown)
 
     const tongueMat = new MeshBasicMaterial({ color: 0xff3d8e })
     const stem = new Mesh(new BoxGeometry(0.05, 0.03, 0.5), tongueMat)
@@ -267,13 +245,6 @@ export class SerpentHead {
     const browY = 0.66 + this.browLift - closure * 0.07
     this.browL.position.y = browY
     this.browR.position.y = browY
-
-    // crown: bobs gently; slips forward when hunting, sits tall when smug
-    const crownTilt =
-      this.expression === 'alert' ? 0.18 : this.expression === 'playful' ? -0.22 : -0.12
-    this.crown.rotation.x += (crownTilt - this.crown.rotation.x) * Math.min(1, dt * 4)
-    this.crown.position.y = 0.74 + Math.sin(time * 1.7) * 0.025 + this.browLift * 0.6
-    this.crown.rotation.z = Math.sin(time * 0.9) * 0.04
 
     // ── tongue flick ──────────────────────────────────────────────────
     const phase = time % 3.4
