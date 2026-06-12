@@ -98,6 +98,8 @@ export function initAtlas() {
 
   function travel(i: number) {
     const target = sections[i]
+    // closed dossier files open before we fly into them
+    document.dispatchEvent(new CustomEvent('gtoat:travel', { detail: target.id }))
     const from = window.scrollY
     const to = target.getBoundingClientRect().top + window.scrollY - 64
     const dist = Math.abs(to - from)
