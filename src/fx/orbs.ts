@@ -61,6 +61,8 @@ export class Orbs {
   points: Points
   private positions: Float32Array
   private scales: Float32Array
+  private depths: Float32Array // parallax stratum per orb: 0.25 deep … 1.6 near
+  private posAttr!: BufferAttribute
   private scaleAttr: BufferAttribute
   private count: number
   private bounds = { w: 9, h: 7, d: 5 }
@@ -72,16 +74,21 @@ export class Orbs {
     this.count = count
     this.positions = new Float32Array(count * 3)
     this.scales = new Float32Array(count)
+    this.depths = new Float32Array(count)
     const seeds = new Float32Array(count)
 
     for (let i = 0; i < count; i++) {
       this.respawn(i)
       seeds[i] = Math.random()
       this.scales[i] = 0.4 + Math.random() * 0.8
+      // strata: most orbs drift deep and slow, a few ride near and fast
+      this.depths[i] = 0.25 + Math.pow(Math.random(), 1.6) * 1.35
     }
 
     const geo = new BufferGeometry()
-    geo.setAttribute('position', new BufferAttribute(this.positions, 3))
+    this.posAttr = new BufferAttribute(this.positions, 3)
+    this.posAttr.setUsage(35048) // DYNAMIC_DRAW — parallax rewrites y
+    geo.setAttribute('position', this.posAttr)
     this.scaleAttr = new BufferAttribute(this.scales, 1)
     this.scaleAttr.setUsage(35048)
     geo.setAttribute('aScale', this.scaleAttr)
@@ -116,11 +123,29 @@ export class Orbs {
     this.bounds.h = view.h * 1.1
   }
 
-  update(time: number, headPos: Vector3, tint: Color, warpAmount: number) {
+  /**
+   * @param scrollFlow signed scroll velocity (-1..1) — drives the
+   * depth-parallax strata: near orbs sweep past fast, deep ones crawl,
+   * and the whole field reads as a volume while the page moves.
+   */
+  update(time: number, headPos: Vector3, tint: Color, warpAmount: number, scrollFlow: number) {
     const u = (this.points.material as ShaderMaterial).uniforms
     u.uTime.value = time
     u.uTint.value.copy(tint)
     u.uWarp.value = warpAmount
+
+    if (Math.abs(scrollFlow) > 0.004) {
+      const sweep = scrollFlow * 10.5 // world units/s at full flow
+      const H = this.bounds.h * 1.15
+      const dt = 1 / 60 // ticker-paced; exact dt not worth a param here
+      for (let i = 0; i < this.count; i++) {
+        let y = this.positions[i * 3 + 1] + sweep * this.depths[i] * dt
+        if (y > H) y -= H * 2
+        else if (y < -H) y += H * 2
+        this.positions[i * 3 + 1] = y
+      }
+      this.posAttr.needsUpdate = true
+    }
 
     let dirty = false
     for (let i = 0; i < this.count; i++) {
