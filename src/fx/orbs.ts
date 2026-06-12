@@ -31,7 +31,10 @@ const vert = /* glsl */ `
 `
 
 const frag = /* glsl */ `
-  precision mediump float;
+  // highp to match the vertex stage — uWarp is shared, and mismatched
+  // uniform precision fails program validation on strict GPUs (rendered
+  // every orb as a raw white square sprite)
+  precision highp float;
   varying float vSeed;
   varying float vScale;
   uniform vec3 uTint;
