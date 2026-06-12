@@ -74,6 +74,11 @@ const updateFrag = /* glsl */ `
     // advect the dye along the swirl with a slow rise, then decay
     vec2 adv = vUv - curl * uDt * 0.045 - vec2(0.0, uDt * 0.012);
     vec3 dye = texture2D(uPrev, adv).rgb * 0.972;
+    // uninitialized target memory can carry NaN/garbage on some GPUs —
+    // NaN fails every comparison, so this scrubs it instead of advecting
+    // it forever
+    if (!(dye.x >= 0.0 && dye.x <= 10.0)) dye = vec3(0.0);
+    dye = clamp(dye, vec3(0.0), vec3(1.4));
 
     // emitters — soft gaussian splats
     float dA = length((vUv - uSplatA) * uAspect);
@@ -109,6 +114,19 @@ export class Ink {
     this.rtA = new WebGLRenderTarget(w, h, opts)
     this.rtB = new WebGLRenderTarget(w, h, opts)
     this.texture = this.rtB.texture
+
+    // render targets are NOT guaranteed zeroed — clear both before the
+    // first sample or stale VRAM (white blocks) leaks into the sim
+    const prevColor = new Color()
+    renderer.getClearColor(prevColor)
+    const prevAlpha = renderer.getClearAlpha()
+    renderer.setClearColor(0x000000, 1)
+    renderer.setRenderTarget(this.rtA)
+    renderer.clear(true, false, false)
+    renderer.setRenderTarget(this.rtB)
+    renderer.clear(true, false, false)
+    renderer.setRenderTarget(null)
+    renderer.setClearColor(prevColor, prevAlpha)
 
     const geo = new BufferGeometry()
     geo.setAttribute('position', new Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3))

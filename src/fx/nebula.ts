@@ -75,7 +75,9 @@ const frag = /* glsl */ `
     col += uTintB * pow(fbm(p * 6.0 + t * 2.0), 8.0) * 0.3; // starfield sparkle
 
     // ink field — bioluminescent dye trailing the pointer and the serpent
-    col += texture2D(uInk, vUv).rgb * 0.5 * uInkOn;
+    vec3 inkDye = texture2D(uInk, vUv).rgb;
+    if (!(inkDye.x >= 0.0 && inkDye.x <= 10.0)) inkDye = vec3(0.0); // NaN scrub
+    col += clamp(inkDye, vec3(0.0), vec3(1.5)) * 0.5 * uInkOn;
 
     // vignette
     float vig = smoothstep(1.25, 0.35, length(p));
