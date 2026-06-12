@@ -9,8 +9,6 @@ import { Orbs } from '../fx/orbs'
 import { Burst } from '../fx/burst'
 import { mood } from '../fx/moods'
 import { warp } from '../fx/warp'
-import { createInk } from '../fx/ink'
-import { attachInk } from '../fx/nebula'
 import { pickPoi } from '../sections/poi'
 import { reactToExamine } from '../sections/examine'
 import type { Poi } from '../sections/poi'
@@ -72,11 +70,9 @@ export function createSerpent() {
     pointerEngaged = false
   })
 
-  // bioluminescent ink — the serpent and the pointer both leave dye
-  const inkHeadPos = new Vector3()
-  const ink = createInk(() => locomotion.headPosition(inkHeadPos))
-  if (ink) attachInk(() => ink.texture)
-
+  // NOTE: the bioluminescent ink sim (fx/ink.ts) is retired — its
+  // HalfFloat ping-pong artifacted as an opaque white square on some
+  // GPUs. The module stays for a future WebGPU-compute revival.
   let eaten = 0
   orbs.onEat = () => {
     eaten++
