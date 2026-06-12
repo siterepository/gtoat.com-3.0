@@ -24,6 +24,7 @@ import { initCursor } from './ui/cursor'
 import { initWatchdog } from './engine/watchdog'
 import { initWarp } from './fx/warp'
 import { initAtlas } from './ui/atlas'
+import { initCollapse } from './sections/collapse'
 
 document.body.dataset.quality = quality.tier
 if (quality.reducedMotion) document.body.classList.add('motion-off')
@@ -49,6 +50,7 @@ initCursor()
 initWatchdog()
 initWarp()
 initAtlas()
+initCollapse()
 
 runPreloader().then(() => {
   document.dispatchEvent(new CustomEvent('gtoat:ready'))

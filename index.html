@@ -130,6 +130,32 @@
       <div class="scroll-hint mono" aria-hidden="true">SCROLL<span class="hint-chev">⌄</span></div>
     </section>
 
+    <!-- ═══ 1.5 · EVAR HUD ═══ -->
+    <section class="scr-ad" id="evarhud" aria-label="EVAR HUD for Slither.io">
+      <div class="ad-in">
+        <div class="ad-copy">
+          <p class="sec-tag mono gold">FIELD EQUIPMENT</p>
+          <h2 class="ad-title">EVAR <span class="g">HUD</span></h2>
+          <p class="ad-sub">The official GTOAT instrument panel for Slither.io. Live stats, kill feed,
+          session tracking — the same telemetry the team slithers with.</p>
+          <div class="ad-actions">
+            <a class="btn-hud" href="https://chromewebstore.google.com/detail/evar-hud-for-slither/dlbdadadleejofcdolokgnjphhhbbmpd" target="_blank" rel="noopener" data-cursor="INSTALL">
+              <span class="badge badge-gm mono">CHROME</span>Install EVAR HUD
+            </a>
+            <a class="chip" href="https://www.youtube.com/watch?v=2GeYolwEO2E" target="_blank" rel="noopener"><span class="badge badge-yt mono">YT</span>Watch it work</a>
+          </div>
+        </div>
+        <div class="ad-visual" aria-hidden="true">
+          <div class="hud-mock card">
+            <p class="mono hud-line"><span>MASS</span><b class="orbitron">41,337</b></p>
+            <p class="mono hud-line"><span>RANK</span><b class="orbitron">#1</b></p>
+            <p class="mono hud-line"><span>KILLS</span><b class="orbitron">23</b></p>
+            <p class="mono hud-line hud-live"><span>BELLA</span><b>HAPPY ✓</b></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ═══ 2 · THE BRIEF ═══ -->
     <section class="scr scr-brief flow-r" id="brief" data-scene="brief">
       <div class="sec-in">
@@ -207,14 +233,16 @@
     </section>
 
     <!-- ═══ 4 · INTEL FEED ═══ -->
-    <section class="scr scr-intel flow-r" id="updates" data-scene="intel">
+    <section class="scr scr-intel flow-r clp" id="updates" data-scene="intel">
       <span id="intel" class="anchor-alias" aria-hidden="true"></span>
       <div class="sec-in">
-        <header class="sec-head">
+        <header class="sec-head clp-head">
           <p class="sec-tag mono cyan">INTELLIGENCE</p>
           <h2 class="sec-title">Intel <span class="g">Feed</span></h2>
+          <button class="clp-btn mono" type="button" aria-expanded="false" aria-controls="updates-body"><span class="clp-chev">+</span> OPEN FILE</button>
         </header>
 
+        <div class="sec-body" id="updates-body">
         <div class="tabs mono" id="intelTabs" role="tablist" aria-label="Filter intel">
           <button class="tab is-on" data-f="all" role="tab" aria-selected="true">All</button>
           <button class="tab" data-f="reddit" role="tab" aria-selected="false">Reddit</button>
@@ -246,17 +274,20 @@
           <a class="card intel-card x-hide" data-p="gaming" href="https://www.hashtags.org/analytics/GToAT/" target="_blank" rel="noopener"><span class="badge badge-gm mono">DATA</span><h4>#GTOAT Analytics</h4><p>Hashtag tracking data.</p></a>
         </div>
         <button class="btn-ghost mono" id="intelMore" type="button">Show More <span class="badge">+14</span></button>
+        </div>
       </div>
     </section>
 
     <!-- ═══ 5 · COMMUNITY REVIEWS ═══ -->
-    <section class="scr scr-reviews flow-l" id="reviews" data-scene="reviews">
+    <section class="scr scr-reviews flow-l clp" id="reviews" data-scene="reviews">
       <div class="sec-in">
-        <header class="sec-head">
+        <header class="sec-head clp-head">
           <p class="sec-tag mono cyan">INTEL</p>
           <h2 class="sec-title">Community <span class="g">Reviews</span></h2>
+          <button class="clp-btn mono" type="button" aria-expanded="false" aria-controls="reviews-body"><span class="clp-chev">+</span> OPEN FILE</button>
         </header>
 
+        <div class="sec-body" id="reviews-body">
         <div class="reviews-grid">
           <a class="card review-card" href="https://www.reddit.com/r/Slitherio/comments/11ocbuo" target="_blank" rel="noopener">
             <span class="badge badge-rd mono">REDDIT</span><span class="rv-tag mono rant">RANT</span>
@@ -309,17 +340,20 @@
             <span class="rv-int" aria-label="Intensity 3 of 5">★★★<i>★★</i></span>
           </a>
         </div>
+        </div>
       </div>
     </section>
 
     <!-- ═══ 6 · FULL LORE ═══ -->
-    <section class="scr scr-lore flow-r" id="lore" data-scene="lore">
+    <section class="scr scr-lore flow-r clp" id="lore" data-scene="lore">
       <div class="sec-in">
-        <header class="sec-head">
+        <header class="sec-head clp-head">
           <p class="sec-tag mono gold">CHRONICLE</p>
           <h2 class="sec-title">Full <span class="g">Lore</span></h2>
+          <button class="clp-btn mono" type="button" aria-expanded="false" aria-controls="lore-body"><span class="clp-chev">+</span> OPEN FILE</button>
         </header>
 
+        <div class="sec-body" id="lore-body">
         <ol class="tl">
           <li class="tle">
             <h3>Early Life</h3>
@@ -352,17 +386,20 @@
           <div class="ego-bar"><div class="ego-fill"></div></div>
           <span class="ego-v orbitron">∞</span>
         </div>
+        </div>
       </div>
     </section>
 
     <!-- ═══ 7 · MEDIA DIRECTORY ═══ -->
-    <section class="scr scr-media flow-l" id="media" data-scene="media">
+    <section class="scr scr-media flow-l clp" id="media" data-scene="media">
       <div class="sec-in">
-        <header class="sec-head">
+        <header class="sec-head clp-head">
           <p class="sec-tag mono purple">MEDIA</p>
           <h2 class="sec-title">Media <span class="g">Directory</span></h2>
+          <button class="clp-btn mono" type="button" aria-expanded="false" aria-controls="media-body"><span class="clp-chev">+</span> OPEN FILE</button>
         </header>
 
+        <div class="sec-body" id="media-body">
         <div class="media-list">
           <a class="card ml" href="https://www.youtube.com/shorts/feva1L-qs08" target="_blank" rel="noopener">
             <span class="badge badge-yt mono">YT</span>
@@ -440,6 +477,7 @@
               <div><h4>NUMBER 1 YOUTUBER! — Lachlan</h4><p>Impersonating greatness, achieving it.</p></div><span class="ml-arr">→</span>
             </a>
           </div>
+        </div>
         </div>
       </div>
     </section>

@@ -719,6 +719,11 @@
 
       this.bindInputs();
       window.addEventListener('resize', this.boundResize);
+      // Mobile viewport resize: respond to visualViewport changes (keyboard pop, orientation change)
+      if (global.visualViewport) {
+        global.visualViewport.addEventListener('resize', this.boundResize);
+        global.visualViewport.addEventListener('orientationchange', this.boundResize);
+      }
 
       overlay.querySelector('#gtoat-slither-exit').addEventListener('click', () => this.exit());
       overlay.querySelector('#gtoat-slither-exit2').addEventListener('click', () => this.exit());
@@ -1783,6 +1788,11 @@
       this.loggedMatchId = '';
       document.body.style.overflow = '';
       window.removeEventListener('resize', this.boundResize);
+      // Remove mobile viewport listeners
+      if (global.visualViewport) {
+        global.visualViewport.removeEventListener('resize', this.boundResize);
+        global.visualViewport.removeEventListener('orientationchange', this.boundResize);
+      }
     }
   }
 

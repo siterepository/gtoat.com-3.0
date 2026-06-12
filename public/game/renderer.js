@@ -100,25 +100,25 @@
       const cy = this.cy;
       const diag = Math.sqrt(w * w + h * h) * 0.5;
 
-      // Base radial gradient: dark navy nebula
+      // Base radial gradient: deep void #04060d
       const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, diag);
-      bg.addColorStop(0, '#0a1628');
-      bg.addColorStop(0.5, '#071020');
-      bg.addColorStop(1, '#050a1a');
+      bg.addColorStop(0, '#0a0e1a');
+      bg.addColorStop(0.5, '#050809');
+      bg.addColorStop(1, '#04060d');
       this._bgGrad = bg;
 
-      // Nebula glow overlay
+      // Nebula glow overlay: neon purple tint
       const neb = ctx.createRadialGradient(cx * 0.95, cy * 0.9, 0, cx, cy, diag * 0.7);
-      neb.addColorStop(0, 'rgba(25,55,120,0.18)');
-      neb.addColorStop(0.4, 'rgba(15,35,80,0.08)');
+      neb.addColorStop(0, 'rgba(178,77,255,0.08)');
+      neb.addColorStop(0.4, 'rgba(100,40,200,0.04)');
       neb.addColorStop(1, 'rgba(0,0,0,0)');
       this._nebulaGrad = neb;
 
       // Vignette: more dramatic
       const vig = ctx.createRadialGradient(cx, cy, h * 0.14, cx, cy, h * 0.82);
       vig.addColorStop(0, 'rgba(0,0,0,0)');
-      vig.addColorStop(0.7, 'rgba(0,0,0,0.18)');
-      vig.addColorStop(1, 'rgba(0,0,0,0.58)');
+      vig.addColorStop(0.7, 'rgba(0,0,0,0.22)');
+      vig.addColorStop(1, 'rgba(0,0,0,0.62)');
       this._vignetteGrad = vig;
     }
 
@@ -177,15 +177,15 @@
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Grid lines with subtle pulse
+      // Grid lines with subtle pulse: faint cyan dot grid
       const z = this.cam.zoom;
       const step = (this.lowFx ? 62 : 42) * z;
       const ox = ((-this.cam.x * z) % step + step) % step;
       const oy = ((-this.cam.y * z) % step + step) % step;
       const pulse = this.lowFx ? 0 : Math.sin(this._frameTime * 0.8) * 0.008;
-      const gridAlpha = (this.lowFx ? 0.028 : 0.052) + pulse;
-      ctx.strokeStyle = `rgba(140,180,255,${gridAlpha})`;
-      ctx.lineWidth = 1;
+      const gridAlpha = (this.lowFx ? 0.04 : 0.065) + pulse;
+      ctx.strokeStyle = `rgba(0,240,255,${gridAlpha})`;
+      ctx.lineWidth = 0.8;
       const lineStride = this.lowFx ? 2 : 1;
       let lineI = 0;
       ctx.beginPath();
@@ -218,7 +218,7 @@
     drawBoundary(radius) {
       const ctx = this.ctx;
       const c = this.worldToScreen(0, 0);
-      ctx.strokeStyle = 'rgba(146,188,255,0.26)';
+      ctx.strokeStyle = 'rgba(0,240,255,0.32)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(c.x, c.y, radius * this.cam.zoom, 0, TWO_PI);
@@ -275,14 +275,14 @@
         if (!lowFx && !nearEdge) {
           // Breathing glow: radius oscillates subtly based on pellet value
           const breathe = 1 + breatheBase * (0.06 + p.value * 0.02);
-          const glowR = baseR * (2.2 + p.value * 0.3) * breathe;
-          const glowAlpha = 0.22 + flashAlpha * 0.4;
+          const glowR = baseR * (2.4 + p.value * 0.4) * breathe;
+          const glowAlpha = 0.28 + flashAlpha * 0.5;
           const hBucket = (p.hue / 10 | 0) * 10; // bucket hues to reduce fillStyle changes
           if (hBucket !== prevGlowHue) {
-            ctx.fillStyle = `hsla(${p.hue},96%,60%,${glowAlpha.toFixed(2)})`;
+            ctx.fillStyle = `hsla(${p.hue},98%,58%,${glowAlpha.toFixed(2)})`;
             prevGlowHue = hBucket;
           } else {
-            ctx.fillStyle = `hsla(${p.hue},96%,60%,${glowAlpha.toFixed(2)})`;
+            ctx.fillStyle = `hsla(${p.hue},98%,58%,${glowAlpha.toFixed(2)})`;
           }
           ctx.beginPath();
           ctx.arc(sx, sy, glowR, 0, TWO_PI);
@@ -613,25 +613,25 @@
             }
           }
 
-          // Wider soft glow behind body (skip on lowFx)
+          // Wider soft glow behind body (skip on lowFx): neon purple glow
           if (!lowFx) {
-            ctx.shadowColor = 'rgba(100,60,200,0.45)';
-            ctx.shadowBlur = tubeR * 1.6;
+            ctx.shadowColor = 'rgba(178,77,255,0.55)';
+            ctx.shadowBlur = tubeR * 1.8;
             // Enhancement 4: Pulsing glow on body when boosting
             if (snake.boosting) {
-              const pulseGlow = 1.0 + Math.sin(this._frameTime * 8) * 0.3;
-              ctx.shadowBlur = tubeR * 1.6 * pulseGlow;
-              ctx.shadowColor = 'rgba(140,80,255,0.6)';
+              const pulseGlow = 1.0 + Math.sin(this._frameTime * 8) * 0.4;
+              ctx.shadowBlur = tubeR * 1.8 * pulseGlow;
+              ctx.shadowColor = 'rgba(255,61,142,0.7)';
             }
           }
-          ctx.strokeStyle = 'rgba(31,19,67,0.82)';
+          ctx.strokeStyle = 'rgba(20,10,40,0.88)';
           ctx.lineWidth = tubeR * 2.2;
           ctx.stroke();
           if (!lowFx) {
             ctx.shadowBlur = 0;
           }
 
-          ctx.strokeStyle = 'rgba(101,64,196,0.92)';
+          ctx.strokeStyle = 'rgba(178,77,255,0.95)';
           ctx.lineWidth = tubeR * 1.72;
           ctx.stroke();
         }
@@ -679,10 +679,10 @@
         ctx.shadowBlur = 0;
       } else {
         // --- Non-player snake with body gradient ---
-        // Wider body glow for non-player snakes
+        // Wider body glow for non-player snakes: neon glow
         if (!lowFx) {
-          ctx.shadowColor = `hsla(${snake.hue || 200},70%,40%,0.35)`;
-          ctx.shadowBlur = 8 * z;
+          ctx.shadowColor = `hsla(${snake.hue || 200},95%,55%,0.48)`;
+          ctx.shadowBlur = 10 * z;
         }
         for (let i = len - 1; i >= 0; i -= segStep) {
           const seg = snake.segments[i];
