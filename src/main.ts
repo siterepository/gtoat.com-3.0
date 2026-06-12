@@ -8,7 +8,6 @@ import { quality } from './engine/quality'
 import { startStage } from './engine/stage'
 import { createNebula } from './fx/nebula'
 import { createSerpent } from './serpent'
-import { initBloom } from './fx/bloom'
 import { initMoods } from './fx/moods'
 import { runPreloader } from './ui/preloader'
 import { initNav } from './ui/nav'
@@ -35,7 +34,7 @@ if (year) year.textContent = String(new Date().getFullYear())
 initMoods()
 createNebula()
 createSerpent()
-if (quality.bloom) initBloom()
+// bloom retired — the halo around the serpent read as glare, not glow
 startStage()
 initNav()
 initProgress()
