@@ -22,6 +22,8 @@ import { initContact } from './data/contact'
 import { initAudio } from './fx/audio'
 import { initCursor } from './ui/cursor'
 import { initWatchdog } from './engine/watchdog'
+import { initWarp } from './fx/warp'
+import { initAtlas } from './ui/atlas'
 
 document.body.dataset.quality = quality.tier
 if (quality.reducedMotion) document.body.classList.add('motion-off')
@@ -45,6 +47,8 @@ initContact()
 initAudio()
 initCursor()
 initWatchdog()
+initWarp()
+initAtlas()
 
 runPreloader().then(() => {
   document.dispatchEvent(new CustomEvent('gtoat:ready'))
