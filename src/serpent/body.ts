@@ -89,11 +89,11 @@ const frag = /* glsl */ `
     vec3 col = base * diff * 0.34 * topShade;
     col *= 0.72 + 0.28 * seam;                       // scale valleys read as texture
     col = mix(col, bellyCol, bellyMask * 0.55);
-    col += base * stripe * 1.5;                      // glow segments (bloom feeds on these)
-    col += vec3(1.0) * spec * 0.5;
-    col += vec3(0.0, 0.94, 1.0) * rim * 0.55;
+    col += base * stripe * 0.7;                      // luminous bands, no blowout
+    col += vec3(1.0) * spec * 0.45;
+    col += vec3(0.0, 0.94, 1.0) * rim * 0.4;
     col += base * 0.05;
-    col += base * smoothstep(0.82, 1.0, vUv.x) * 0.35; // life gathers at the neck
+    col += base * smoothstep(0.82, 1.0, vUv.x) * 0.18; // life gathers at the neck
 
     gl_FragColor = vec4(col, 1.0);
   }

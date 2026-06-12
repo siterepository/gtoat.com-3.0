@@ -39,8 +39,8 @@ const skullFrag = /* glsl */ `
     vec3 base = mix(vec3(0.26, 0.10, 0.46), vec3(0.55, 0.22, 0.95), diff);
     vec3 col = base * (0.55 + fill);
     col += vec3(1.0) * spec * 0.45;
-    col += vec3(0.0, 0.94, 1.0) * rim * 0.8;
-    col += vec3(1.0, 0.24, 0.56) * pow(rim, 3.0) * 0.5;
+    col += vec3(0.0, 0.94, 1.0) * rim * 0.5;
+    col += vec3(1.0, 0.24, 0.56) * pow(rim, 3.0) * 0.3;
     gl_FragColor = vec4(col, 1.0);
   }
 `
